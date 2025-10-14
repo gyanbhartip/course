@@ -3,9 +3,11 @@
  * Handles user authentication with email and password
  */
 
+import { Input } from '@/components/ui/input';
+import { Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react';
 import { useState } from 'react';
+import { Button } from '../../components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
-import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
     const { login, isLoading } = useAuth();
@@ -58,7 +60,7 @@ const Login: React.FC = () => {
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <Mail className="h-5 w-5 text-gray-400" />
                                 </div>
-                                <input
+                                <Input
                                     id="email"
                                     name="email"
                                     type="email"
@@ -83,7 +85,7 @@ const Login: React.FC = () => {
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <Lock className="h-5 w-5 text-gray-400" />
                                 </div>
-                                <input
+                                <Input
                                     id="password"
                                     name="password"
                                     type={showPassword ? 'text' : 'password'}
@@ -119,19 +121,19 @@ const Login: React.FC = () => {
 
                     {/* Submit Button */}
                     <div>
-                        <button
+                        <Button
                             type="submit"
                             disabled={isLoading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                            className="w-full text-white bg-indigo-600 hover:bg-indigo-700">
                             {isLoading ? (
                                 <div className="flex items-center">
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2 " />
                                     Signing in...
                                 </div>
                             ) : (
                                 'Sign in'
                             )}
-                        </button>
+                        </Button>
                     </div>
 
                     {/* Demo Credentials */}
