@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api.v1.api import api_router
+from app.core.monitoring import LoggingMiddleware, MetricsMiddleware
 import sentry_sdk
 
 # Initialize Sentry for error tracking (if DSN provided)
@@ -24,6 +25,10 @@ app = FastAPI(
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
 )
+
+# Add monitoring middleware
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(MetricsMiddleware)
 
 # CORS configuration
 app.add_middleware(

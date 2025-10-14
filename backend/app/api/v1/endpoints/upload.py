@@ -112,8 +112,21 @@ async def upload_content(
     storage_service = StorageService()
     url = await storage_service.upload_content(file, str(course_id), content_type)
 
-    # TODO: Queue video processing if it's a video (Phase 2)
-    status_message = "processing" if content_type == "video" else "complete"
+    # Queue video processing if it's a video
+    status_message = "complete"
+    if content_type == "video":
+        from app.tasks.video import process_video_task
+
+        # Start video processing task
+        task = process_video_task.delay(url, str(course_id))
+        status_message = "processing"
+
+        return {
+            "url": url,
+            "status": status_message,
+            "task_id": task.id,
+            "message": f"{content_type.title()} uploaded successfully and processing started",
+        }
 
     return {
         "url": url,

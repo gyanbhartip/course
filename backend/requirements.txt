@@ -35,6 +35,11 @@ email-validator==2.2.0    # Email validation
 python-dotenv==1.0.1      # Environment variables
 httpx==0.28.1             # Async HTTP client
 aiofiles==24.1.0          # Async file operations
+jinja2==3.1.4             # Email templates
+structlog==24.1.0         # Structured logging
+prometheus-client==0.21.0 # Prometheus metrics
+elasticsearch==8.11.0     # Elasticsearch client
+elasticsearch-dsl==8.11.0 # Elasticsearch DSL
 
 # Monitoring & Logging
 sentry-sdk[fastapi]==2.19.2  # Error tracking

@@ -40,6 +40,21 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str
     CELERY_RESULT_BACKEND: str
 
+    # Email Configuration
+    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    FROM_EMAIL: str = "noreply@lms.com"
+    FROM_NAME: str = "LMS Team"
+    FRONTEND_URL: str = "http://localhost:3000"
+
+    # Elasticsearch Configuration
+    ELASTICSEARCH_URL: str = "http://localhost:9200"
+    ELASTICSEARCH_USERNAME: str = ""
+    ELASTICSEARCH_PASSWORD: str = ""
+    ELASTICSEARCH_INDEX_PREFIX: str = "lms"
+
     # CORS
     CORS_ORIGINS: List[str] = ["http://localhost:5173"]
 
