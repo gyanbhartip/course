@@ -10,9 +10,12 @@ import { useAuth } from '../contexts/AuthContext';
 import { useMyEnrollments } from '../../hooks/useEnrollments';
 import { useNotes } from '../../hooks/useNotes';
 import { useDashboardStats } from '../../hooks/useDashboard';
+import { useProgressSummary } from '../../hooks/useProgress';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorMessage from '../../components/ErrorMessage';
 import EmptyState from '../../components/EmptyState';
+import ResumeCard from '../../components/ResumeCard';
+import ProgressBar from '../../components/ProgressBar';
 import {
     BookOpen,
     Clock,
@@ -41,11 +44,16 @@ const Dashboard: React.FC = () => {
         isLoading: statsLoading,
         error: statsError,
     } = useDashboardStats();
+    const {
+        data: progressSummary,
+        isLoading: progressLoading,
+        error: progressError,
+    } = useProgressSummary();
 
     if (!user) return null;
 
     // Show loading state
-    if (enrollmentsLoading || notesLoading || statsLoading) {
+    if (enrollmentsLoading || notesLoading || statsLoading || progressLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
                 <LoadingSpinner size="lg" text="Loading dashboard..." />
@@ -54,7 +62,7 @@ const Dashboard: React.FC = () => {
     }
 
     // Show error state
-    if (enrollmentsError || notesError || statsError) {
+    if (enrollmentsError || notesError || statsError || progressError) {
         return (
             <div className="space-y-6">
                 <ErrorMessage
@@ -141,6 +149,89 @@ const Dashboard: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Continue Learning Section */}
+            {progressSummary && progressSummary.length > 0 && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
+                    <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            Continue Learning
+                        </h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            Pick up where you left off
+                        </p>
+                    </div>
+                    <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {progressSummary
+                                .filter(
+                                    course =>
+                                        course.overall_progress > 0 &&
+                                        course.overall_progress < 100,
+                                )
+                                .slice(0, 3)
+                                .map(course => {
+                                    // Find the content with the highest progress that's not completed
+                                    const currentContent =
+                                        course.content_progress
+                                            .filter(
+                                                content =>
+                                                    !content.completed &&
+                                                    content.progress_percentage >
+                                                        0,
+                                            )
+                                            .sort(
+                                                (a, b) =>
+                                                    b.progress_percentage -
+                                                    a.progress_percentage,
+                                            )[0];
+
+                                    if (!currentContent) return null;
+
+                                    return (
+                                        <ResumeCard
+                                            key={course.course_id}
+                                            course={{
+                                                id: course.course_id,
+                                                title: course.course_title,
+                                                description: '',
+                                                instructor: '',
+                                                difficulty: 'beginner',
+                                                category: '',
+                                                thumbnail_url: '',
+                                                duration: 0,
+                                                status: 'published',
+                                                created_at: '',
+                                                updated_at: '',
+                                                content: [],
+                                            }}
+                                            progress={currentContent}
+                                            lastActivity={
+                                                currentContent.updated_at
+                                            }
+                                        />
+                                    );
+                                })}
+                        </div>
+                        {progressSummary.filter(
+                            course =>
+                                course.overall_progress > 0 &&
+                                course.overall_progress < 100,
+                        ).length === 0 && (
+                            <EmptyState
+                                icon={Play}
+                                title="No courses in progress"
+                                description="Start a new course to see your progress here"
+                                action={{
+                                    label: 'Browse Courses',
+                                    onClick: () =>
+                                        (window.location.href = '/courses'),
+                                }}
+                            />
+                        )}
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* My Courses Section */}

@@ -5,9 +5,19 @@
 
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { BookOpen, User, LogOut, Settings, Home, Menu, X } from 'lucide-react';
+import {
+    BookOpen,
+    User,
+    LogOut,
+    Settings,
+    Home,
+    Menu,
+    X,
+    BarChart3,
+} from 'lucide-react';
 import { useState } from 'react';
 import ThemeToggle from './ThemeToggle';
+import NotificationBell from '../../components/NotificationBell';
 
 interface LayoutProps {
     children: React.ReactNode;
@@ -31,6 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             { name: 'Dashboard', href: '/dashboard', icon: Home },
             { name: 'My Courses', href: '/courses', icon: BookOpen },
             { name: 'My Notes', href: '/notes', icon: User },
+            { name: 'Analytics', href: '/analytics', icon: BarChart3 },
         ];
 
         if (user?.role === 'admin') {
@@ -161,6 +172,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                                 </h1>
                             </div>
                             <div className="flex items-center space-x-4">
+                                <NotificationBell />
                                 <ThemeToggle />
                                 <span className="text-sm text-gray-500 dark:text-gray-400">
                                     Welcome, {user?.name}

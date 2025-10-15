@@ -11,9 +11,12 @@ import { useCourse } from '../../hooks/useCourse';
 import { useEnrollmentStatus } from '../../hooks/useEnrollments';
 import { useEnrollInCourse } from '../../hooks/useEnrollments';
 import { useCourseNotes, useCreateNote } from '../../hooks/useNotes';
+import { useCourseProgress } from '../../hooks/useProgress';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import ErrorMessage from '../../components/ErrorMessage';
 import EmptyState from '../../components/EmptyState';
+import VideoPlayer from '../../components/VideoPlayer';
+import ProgressBar from '../../components/ProgressBar';
 import {
     Play,
     Pause,
@@ -57,6 +60,7 @@ const CourseViewer: React.FC = () => {
     );
     const enrollMutation = useEnrollInCourse();
     const createNoteMutation = useCreateNote();
+    const { data: courseProgress } = useCourseProgress(courseId || '');
 
     const isEnrolled = enrollmentStatus?.enrolled || false;
     const isLoading = courseLoading || enrollmentLoading || notesLoading;
@@ -244,47 +248,30 @@ const CourseViewer: React.FC = () => {
                                     </div>
                                 </div>
                             ) : currentContent.type === 'video' ? (
-                                <div className="relative">
-                                    <video
-                                        ref={videoRef}
-                                        className="w-full h-64 sm:h-80 lg:h-96"
-                                        src={currentContent.url}
-                                        onPlay={() => setIsPlaying(true)}
-                                        onPause={() => setIsPlaying(false)}
-                                        onEnded={() => setIsPlaying(false)}
-                                    />
-
-                                    {/* Video Controls Overlay */}
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center space-x-2">
-                                                <button
-                                                    onClick={togglePlayPause}
-                                                    className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
-                                                    {isPlaying ? (
-                                                        <Pause className="h-5 w-5 text-white" />
-                                                    ) : (
-                                                        <Play className="h-5 w-5 text-white" />
-                                                    )}
-                                                </button>
-                                                <button
-                                                    onClick={toggleMute}
-                                                    className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
-                                                    {isMuted ? (
-                                                        <VolumeX className="h-5 w-5 text-white" />
-                                                    ) : (
-                                                        <Volume2 className="h-5 w-5 text-white" />
-                                                    )}
-                                                </button>
-                                            </div>
-                                            <button
-                                                onClick={toggleFullscreen}
-                                                className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
-                                                <Maximize className="h-5 w-5 text-white" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
+                                <VideoPlayer
+                                    contentId={currentContent.id}
+                                    courseId={courseId || ''}
+                                    manifest={{
+                                        content_id: currentContent.id,
+                                        title: currentContent.title,
+                                        duration: currentContent.duration || 0,
+                                        qualities: [
+                                            {
+                                                name: '720p',
+                                                url: currentContent.url,
+                                                height: 720,
+                                                bitrate: '2000k',
+                                            },
+                                        ],
+                                    }}
+                                    onProgressUpdate={(progress, position) => {
+                                        // Progress is automatically saved by the VideoPlayer
+                                        console.log(
+                                            `Progress: ${progress}%, Position: ${position}s`,
+                                        );
+                                    }}
+                                    className="h-64 sm:h-80 lg:h-96"
+                                />
                             ) : (
                                 <div className="h-64 sm:h-80 lg:h-96 flex items-center justify-center bg-gray-100">
                                     <div className="text-center">
@@ -472,6 +459,36 @@ const CourseViewer: React.FC = () => {
                                                         {content.duration &&
                                                             ` • ${content.duration} min`}
                                                     </p>
+                                                    {courseProgress && (
+                                                        <div className="mt-2">
+                                                            {(() => {
+                                                                const progress =
+                                                                    courseProgress.content_progress.find(
+                                                                        p =>
+                                                                            p.content_id ===
+                                                                            content.id,
+                                                                    );
+                                                                if (
+                                                                    progress &&
+                                                                    progress.progress_percentage >
+                                                                        0
+                                                                ) {
+                                                                    return (
+                                                                        <ProgressBar
+                                                                            progress={
+                                                                                progress.progress_percentage
+                                                                            }
+                                                                            size="sm"
+                                                                            showPercentage={
+                                                                                false
+                                                                            }
+                                                                        />
+                                                                    );
+                                                                }
+                                                                return null;
+                                                            })()}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         </button>

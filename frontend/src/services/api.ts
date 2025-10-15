@@ -4,9 +4,9 @@
  */
 
 import axios, {
-    AxiosInstance,
-    AxiosRequestConfig,
-    AxiosResponse,
+    type AxiosInstance,
+    type AxiosRequestConfig,
+    type AxiosResponse,
     AxiosError,
 } from 'axios';
 import type { Token, ApiError } from '../src/types';
@@ -67,7 +67,7 @@ export const isAuthenticated = (): boolean => {
 
 // Request interceptor to add authentication token
 apiClient.interceptors.request.use(
-    (config: AxiosRequestConfig) => {
+    config => {
         const token = getAccessToken();
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -128,11 +128,11 @@ apiClient.interceptors.response.use(
         // Handle other errors
         const apiError: ApiError = {
             detail:
-                error.response?.data?.detail ||
+                (error.response?.data as any)?.detail ||
                 error.message ||
                 'An error occurred',
             status_code: error.response?.status || 500,
-            type: error.response?.data?.type || 'unknown_error',
+            type: (error.response?.data as any)?.type || 'unknown_error',
         };
 
         return Promise.reject(apiError);

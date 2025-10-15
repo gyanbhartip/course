@@ -6,9 +6,8 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { login as loginAPI, getCurrentUser } from '../../services/auth.service';
 import {
-    login as loginAPI,
-    getCurrentUser,
     setTokens,
     clearTokens,
     isAuthenticated as checkAuth,
@@ -43,7 +42,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // Update user state when current user data changes
     useEffect(() => {
-        if (currentUser) {
+        if (currentUser && Object.keys(currentUser).length > 0) {
             setUser(currentUser);
         } else if (error) {
             // If there's an error getting current user, clear auth state

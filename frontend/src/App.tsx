@@ -18,6 +18,7 @@ import CourseList from './src/components/CourseList';
 import CourseViewer from './src/components/CourseViewer';
 import NotesList from './src/components/NotesList';
 import AdminPanel from './src/components/AdminPanel';
+import Analytics from './src/components/Analytics';
 
 // Protected Route component
 const ProtectedRoute: React.FC<{
@@ -104,6 +105,15 @@ const AppRoutes: React.FC = () => {
                 element={
                     <ProtectedRoute>
                         <NotesList />
+                    </ProtectedRoute>
+                }
+            />
+
+            <Route
+                path="/analytics"
+                element={
+                    <ProtectedRoute>
+                        <Analytics />
                     </ProtectedRoute>
                 }
             />

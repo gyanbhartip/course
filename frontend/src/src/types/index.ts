@@ -265,6 +265,22 @@ export interface Progress {
     updated_at?: string; // ISO date string
 }
 
+// Progress creation data
+export interface ProgressCreate {
+    course_id: UUID;
+    content_id: UUID;
+    progress_percentage: number;
+    last_position?: number;
+    completed?: boolean;
+}
+
+// Progress update data
+export interface ProgressUpdate {
+    progress_percentage?: number;
+    last_position?: number;
+    completed?: boolean;
+}
+
 // Course progress summary
 export interface CourseProgressSummary {
     course_id: UUID;
@@ -284,6 +300,72 @@ export interface ContentProgressResponse {
     completed: boolean;
     last_position?: number;
     updated_at?: string;
+}
+
+// Progress analytics
+export interface ProgressAnalytics {
+    total_courses_enrolled: number;
+    total_content_completed: number;
+    total_learning_time: number;
+    average_progress: number;
+    completion_rate: number;
+    streak_days: number;
+    last_activity: string | null;
+}
+
+// Learning activity for streak calendar
+export interface LearningActivity {
+    date: string;
+    minutes: number;
+    courses: Array<string>;
+}
+
+// ===== WEBSOCKET TYPES =====
+
+// WebSocket message base
+export interface WebSocketMessage {
+    type: string;
+    data?: any;
+    timestamp: string;
+}
+
+// Notification message
+export interface NotificationMessage extends WebSocketMessage {
+    type: 'notification' | 'course_notification' | 'progress_notification';
+    data: {
+        title: string;
+        message: string;
+        level: 'info' | 'success' | 'warning' | 'error';
+        action_url?: string;
+    };
+}
+
+// Progress update message
+export interface ProgressUpdateMessage extends WebSocketMessage {
+    type: 'progress_updated';
+    user_id: UUID;
+    course_id: UUID;
+    content_id: UUID;
+    progress_percentage: number;
+    completed: boolean;
+}
+
+// ===== VIDEO TYPES =====
+
+// Video quality
+export interface VideoQuality {
+    name: string;
+    url: string;
+    height: number;
+    bitrate: string;
+}
+
+// Video manifest
+export interface VideoManifest {
+    content_id: UUID;
+    title: string;
+    duration: number;
+    qualities: Array<VideoQuality>;
 }
 
 // ===== API RESPONSE TYPES =====

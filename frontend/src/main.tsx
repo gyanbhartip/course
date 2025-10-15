@@ -2,6 +2,8 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { Toaster } from 'react-hot-toast';
+import { NotificationProvider } from './contexts/NotificationContext';
 import './index.css';
 import App from './App.tsx';
 
@@ -11,9 +13,12 @@ const queryClient = new QueryClient({
         queries: {
             staleTime: 5 * 60 * 1000, // 5 minutes
             gcTime: 10 * 60 * 1000, // 10 minutes
-            retry: (failureCount, error: unknown) => {
+            retry: (failureCount, error: any) => {
                 // Don't retry on 4xx errors (client errors)
-                if (error?.status_code >= 400 && error?.status_code < 500) {
+                if (
+                    error?.response?.status >= 400 &&
+                    error?.response?.status < 500
+                ) {
                     return false;
                 }
                 // Retry up to 3 times for other errors
@@ -32,7 +37,19 @@ if (!rootElement) throw new Error('Root element not found');
 createRoot(rootElement).render(
     <StrictMode>
         <QueryClientProvider client={queryClient}>
-            <App />
+            <NotificationProvider>
+                <App />
+                <Toaster
+                    position="top-right"
+                    toastOptions={{
+                        duration: 4000,
+                        style: {
+                            background: '#363636',
+                            color: '#fff',
+                        },
+                    }}
+                />
+            </NotificationProvider>
             <ReactQueryDevtools initialIsOpen={false} />
         </QueryClientProvider>
     </StrictMode>,
