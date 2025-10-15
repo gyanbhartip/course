@@ -141,8 +141,24 @@ services:
     depends_on:
       - redis
 
+  # Nginx reverse proxy for local development
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.local.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - api
+      - elasticsearch
+    restart: unless-stopped
+
 volumes:
   postgres_data:
   redis_data:
   minio_data:
   elasticsearch_data:
+  nginx_logs:

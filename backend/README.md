@@ -61,7 +61,7 @@ A modern, scalable backend API for a Course Management Learning Management Syste
     cp env.example .env
     ```
 
-3. **Start all services**:
+3. **Start all services** (includes Nginx reverse proxy):
 
     ```bash
     docker-compose up -d
@@ -74,7 +74,8 @@ A modern, scalable backend API for a Course Management Learning Management Syste
     ```
 
 5. **Access the application**:
-    - API: http://localhost:8000
+    - API (via Nginx): http://localhost/api/
+    - API (direct): http://localhost:8000
     - API Documentation: http://localhost:8000/api/docs
     - MinIO Console: http://localhost:9001 (minioadmin/minioadmin)
     - Flower (Celery Monitor): http://localhost:5555
@@ -111,6 +112,30 @@ A modern, scalable backend API for a Course Management Learning Management Syste
     ```bash
     uvicorn app.main:app --reload
     ```
+
+## Nginx Configuration
+
+The application includes an Nginx reverse proxy for both local development and production:
+
+-   **Local Development**: Uses `nginx/nginx.local.conf` with relaxed settings
+-   **Production**: Uses `nginx/nginx.conf` with strict security and rate limiting
+-   **SSL Certificates**: Place SSL certificates in `nginx/ssl/` directory (see `nginx/ssl/README.md`)
+
+### Local Development Features
+
+-   **Relaxed Rate Limiting**: 100 req/s for API, 10 req/s for uploads (vs 10/1 in production)
+-   **Permissive CSP**: Allows unsafe-inline and unsafe-eval for development
+-   **Open Metrics**: Monitoring endpoints accessible without IP restrictions
+-   **WebSocket Support**: WebSocket connections are properly proxied
+-   **File Upload**: Optimized handling for large file uploads
+-   **Video Streaming**: Streaming endpoints with proper buffering settings
+
+### Production Features
+
+-   **Strict Rate Limiting**: 10 req/s for API, 1 req/s for uploads
+-   **Security Headers**: Strict CSP, CORS, and other security headers
+-   **IP Restrictions**: Monitoring endpoints restricted to internal networks
+-   **SSL Termination**: HTTPS support with proper SSL configuration
 
 ## API Documentation
 
