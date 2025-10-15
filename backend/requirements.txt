@@ -1,53 +1,53 @@
 # Core Web Framework
-fastapi==0.115.5          # Modern async web framework
-uvicorn[standard]==0.32.1 # ASGI server with uvloop for performance
+fastapi==0.119          # Modern async web framework
+uvicorn[standard]==0.37 # ASGI server with uvloop for performance
 gunicorn==23.0.0          # Production process manager
 
 # Database & ORM
-sqlalchemy==2.0.36        # Async ORM
-asyncpg==0.29.0           # Fast async PostgreSQL driver
-alembic==1.14.0           # Database migrations
-psycopg2-binary==2.9.10   # PostgreSQL adapter
+sqlalchemy==2.0.44        # Async ORM
+asyncpg==0.30.0           # Fast async PostgreSQL driver
+alembic==1.17.0           # Database migrations
+psycopg2-binary==2.9.11   # PostgreSQL adapter
 
 # Caching & Background Jobs
-redis==5.2.1              # Redis client
-celery==5.4.0             # Distributed task queue
+redis==6.4.0            # Redis client
+celery==5.5.3             # Distributed task queue
 flower==2.0.1             # Celery monitoring
 
 # Authentication & Security
-python-jose[cryptography]==3.3.0  # JWT tokens
+python-jose[cryptography]==3.5.0  # JWT tokens
 passlib[bcrypt]==1.7.4    # Password hashing
-python-multipart==0.0.12  # File upload support
+python-multipart==0.0.20  # File upload support
 
 # Storage & Media Processing
-boto3==1.35.80            # S3-compatible client (works with R2, MinIO)
+boto3==1.40.53            # S3-compatible client (works with R2, MinIO)
 ffmpeg-python==0.2.0      # Video processing
-Pillow==11.0.0            # Image processing
+Pillow==12.0.0            # Image processing
 PyPDF2==3.0.1             # PDF manipulation
 python-pptx==1.0.2        # PowerPoint processing
 
 # Validation & Serialization
-pydantic==2.10.4          # Data validation
-pydantic-settings==2.6.1  # Settings management
-email-validator==2.2.0    # Email validation
+pydantic==2.12.2          # Data validation
+pydantic-settings==2.11.0  # Settings management
+email-validator==2.3.0    # Email validation
 
 # Utilities
-python-dotenv==1.0.1      # Environment variables
+python-dotenv==1.1.1      # Environment variables
 httpx==0.28.1             # Async HTTP client
-aiofiles==24.1.0          # Async file operations
-jinja2==3.1.4             # Email templates
-structlog==24.1.0         # Structured logging
-prometheus-client==0.21.0 # Prometheus metrics
-elasticsearch==8.11.0     # Elasticsearch client
-elasticsearch-dsl==8.11.0 # Elasticsearch DSL
+aiofiles==25.1.0          # Async file operations
+jinja2==3.1.6             # Email templates
+structlog==25.4.0         # Structured logging
+prometheus-client==0.23.1 # Prometheus metrics
+elasticsearch==9.1.1     # Elasticsearch client
+aiohttp==3.13.0          # Required for AsyncElasticsearch AIOHTTP transport
 
 # Monitoring & Logging
-sentry-sdk[fastapi]==2.19.2  # Error tracking
-python-json-logger==3.2.1     # Structured logging
+sentry-sdk[fastapi]==2.42.0  # Error tracking
+python-json-logger==4.0.0    # Structured logging
 
 # Development & Testing
-pytest==8.3.4             # Testing framework
-pytest-asyncio==0.24.0    # Async test support
-pytest-cov==6.0.0         # Coverage reporting
-black==24.10.0            # Code formatter
-ruff==0.8.5               # Fast linter
+pytest==8.4.2             # Testing framework
+pytest-asyncio==1.2.0    # Async test support
+pytest-cov==7.0.0         # Coverage reporting
+black==25.9.0            # Code formatter
+ruff==0.14.0               # Fast linter

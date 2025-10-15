@@ -70,8 +70,13 @@ def do_run_migrations(connection: Connection) -> None:
 
 async def run_async_migrations() -> None:
     """Run migrations in async mode."""
+    # Build the SQLAlchemy config mapping explicitly to avoid parsing the entire
+    # alembic.ini section, which can trigger ConfigParser interpolation errors
+    # when values like version_num_format contain percent symbols (e.g. %04d).
+    sqlalchemy_config = {"sqlalchemy.url": get_url()}
+
     connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        sqlalchemy_config,
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )

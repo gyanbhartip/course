@@ -2,22 +2,24 @@
 Course content model for storing course materials.
 """
 
+import enum
+import uuid
+from datetime import datetime
+
 from sqlalchemy import (
+    BigInteger,
     Column,
-    String,
-    Text,
-    Integer,
     DateTime,
     Enum,
     ForeignKey,
-    BigInteger,
+    Integer,
+    String,
+    Text,
 )
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
+
 from app.db.base import Base
-import uuid
-from datetime import datetime
-import enum
 
 
 class ContentType(str, enum.Enum):
@@ -41,7 +43,7 @@ class CourseContent(Base):
     file_size = Column(BigInteger)  # bytes
     duration = Column(Integer)  # minutes for video
     order_index = Column(Integer, nullable=False)
-    metadata = Column(JSONB)  # Flexible JSON field
+    content_metadata = Column("content_metadata", JSONB)  # Flexible JSON field
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

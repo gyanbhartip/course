@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   api:
     build: .
@@ -8,23 +6,29 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/lms
       - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - S3_ENDPOINT=http://minio:9000
       - S3_ACCESS_KEY=minioadmin
       - S3_SECRET_KEY=minioadmin
       - S3_BUCKET=lms-files
       - CDN_URL=http://localhost:9000
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
       - SECRET_KEY=your-secret-key-change-in-production
       - DEBUG=true
     depends_on:
       - db
       - redis
       - minio
+      - elasticsearch
     volumes:
       - ./app:/app/app
+      - ./alembic:/app/alembic
+      - ./alembic.ini:/app/alembic.ini:ro
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine3.22
     environment:
       - POSTGRES_DB=lms
       - POSTGRES_USER=postgres
@@ -40,7 +44,7 @@ services:
       retries: 5
 
   redis:
-    image: redis:7-alpine
+    image: redis:8.2-alpine3.22
     ports:
       - "6379:6379"
     volumes:
@@ -71,11 +75,25 @@ services:
       - minio
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      until /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin; do
+        echo 'Waiting for MinIO to be ready...';
+        sleep 2;
+      done;
       /usr/bin/mc mb myminio/lms-files --ignore-existing;
       /usr/bin/mc policy set public myminio/lms-files;
-      exit 0;
+      echo 'MinIO bucket setup completed';
       "
+
+  elasticsearch:
+    image: elasticsearch:8.19.5
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
 
   celery_worker:
     build: .
@@ -83,6 +101,8 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/lms
       - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
       - S3_ENDPOINT=http://minio:9000
       - S3_ACCESS_KEY=minioadmin
       - S3_SECRET_KEY=minioadmin
@@ -102,6 +122,8 @@ services:
     command: celery -A app.tasks.celery_app beat --loglevel=info
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       - redis
     volumes:
@@ -114,6 +136,8 @@ services:
       - "5555:5555"
     environment:
       - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
       - redis
 
@@ -121,3 +145,4 @@ volumes:
   postgres_data:
   redis_data:
   minio_data:
+  elasticsearch_data:

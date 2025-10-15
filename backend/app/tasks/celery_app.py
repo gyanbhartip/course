@@ -13,7 +13,7 @@ celery_app = Celery(
     include=[
         "app.tasks.video",
         "app.tasks.notifications",
-        "app.tasks.analytics",
+        # NOTE: analytics module not present; remove to avoid import errors
     ],
 )
 
@@ -33,7 +33,6 @@ celery_app.conf.update(
     task_routes={
         "app.tasks.video.*": {"queue": "video_processing"},
         "app.tasks.notifications.*": {"queue": "notifications"},
-        "app.tasks.analytics.*": {"queue": "analytics"},
     },
     task_default_queue="default",
     task_queues={
@@ -48,10 +47,6 @@ celery_app.conf.update(
         "notifications": {
             "exchange": "notifications",
             "routing_key": "notifications",
-        },
-        "analytics": {
-            "exchange": "analytics",
-            "routing_key": "analytics",
         },
     },
 )

@@ -76,13 +76,13 @@ async def stream_video(
         )
 
     # Get video URL from content metadata
-    if not content.metadata or "processed_urls" not in content.metadata:
+    if not content.content_metadata or "processed_urls" not in content.content_metadata:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Video not processed yet"
         )
 
     # Get the best quality available (prefer 720p, fallback to others)
-    processed_urls = content.metadata["processed_urls"]
+    processed_urls = content.content_metadata["processed_urls"]
     video_url = (
         processed_urls.get("720p")
         or processed_urls.get("1080p")
@@ -96,11 +96,11 @@ async def stream_video(
 
     if range_header:
         return await stream_with_range(
-            video_url, range_header, content.metadata.get("video_metadata", {})
+            video_url, range_header, content.content_metadata.get("video_metadata", {})
         )
     else:
         return await stream_full_video(
-            video_url, content.metadata.get("video_metadata", {})
+            video_url, content.content_metadata.get("video_metadata", {})
         )
 
 
@@ -236,8 +236,8 @@ async def get_video_thumbnail(
 
     # Get thumbnail URL
     thumbnail_url = None
-    if content.metadata and "thumbnail_url" in content.metadata:
-        thumbnail_url = content.metadata["thumbnail_url"]
+    if content.content_metadata and "thumbnail_url" in content.content_metadata:
+        thumbnail_url = content.content_metadata["thumbnail_url"]
     elif content.thumbnail_url:
         thumbnail_url = content.thumbnail_url
 
@@ -322,13 +322,13 @@ async def get_video_manifest(
         )
 
     # Get processed URLs
-    if not content.metadata or "processed_urls" not in content.metadata:
+    if not content.content_metadata or "processed_urls" not in content.content_metadata:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Video not processed yet"
         )
 
-    processed_urls = content.metadata["processed_urls"]
-    video_metadata = content.metadata.get("video_metadata", {})
+    processed_urls = content.content_metadata["processed_urls"]
+    video_metadata = content.content_metadata.get("video_metadata", {})
 
     # Create manifest
     manifest = {
@@ -413,8 +413,8 @@ async def get_video_preview(
 
     # Get preview URL from metadata
     preview_url = None
-    if content.metadata and "preview_url" in content.metadata:
-        preview_url = content.metadata["preview_url"]
+    if content.content_metadata and "preview_url" in content.content_metadata:
+        preview_url = content.content_metadata["preview_url"]
 
     if not preview_url:
         raise HTTPException(

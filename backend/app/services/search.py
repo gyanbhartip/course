@@ -2,22 +2,21 @@
 Elasticsearch service for search functionality.
 """
 
+import logging
+from typing import Any, Dict, List, Optional
+
 from elasticsearch import AsyncElasticsearch
-from elasticsearch_dsl import (
-    Document,
-    Text,
-    Keyword,
+from elasticsearch.dsl import (
     Date,
-    Integer,
+    Document,
     Float,
-    Boolean,
+    Integer,
+    Keyword,
+    Text,
     connections,
 )
-from elasticsearch_dsl.query import MultiMatch, Match, Term, Range, Bool
-from typing import List, Dict, Any, Optional
-from datetime import datetime
-from uuid import UUID
-import logging
+from elasticsearch.dsl.query import Bool, MultiMatch, Range, Term
+
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)

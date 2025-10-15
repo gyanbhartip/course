@@ -233,7 +233,7 @@ async def update_content_metadata(
                 update(CourseContent)
                 .where(CourseContent.id == content_id)
                 .values(
-                    metadata={
+                    content_metadata={
                         "processed_urls": output_urls,
                         "thumbnail_url": thumbnail_url,
                         "video_metadata": metadata,
