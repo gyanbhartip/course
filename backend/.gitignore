@@ -206,8 +206,7 @@ Thumbs.db
 .dockerignore
 
 # Alembic
-alembic/versions/*.py
-!alembic/versions/.gitkeep
+
 
 # Coverage reports
 htmlcov/

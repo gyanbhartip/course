@@ -12,6 +12,7 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -49,3 +50,9 @@ class CourseContent(Base):
 
     # Relationships
     course = relationship("Course", back_populates="contents")
+
+    # Constraints and indexes
+    __table_args__ = (
+        Index("idx_course_contents_course_id", "course_id"),
+        Index("idx_course_contents_order", "course_id", "order_index"),
+    )

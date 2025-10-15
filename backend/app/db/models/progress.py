@@ -37,4 +37,7 @@ class CourseProgress(Base):
     __table_args__ = (
         UniqueConstraint("user_id", "content_id", name="unique_user_content_progress"),
         Index("idx_user_course_progress", "user_id", "course_id"),
+        Index("idx_course_progress_content_id", "content_id"),
+        Index("idx_course_progress_completed", "completed"),
+        Index("idx_course_progress_user_completed", "user_id", "completed"),
     )

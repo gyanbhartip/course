@@ -11,6 +11,7 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     BigInteger,
+    Index,
 )
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
@@ -59,3 +60,6 @@ class Course(Base):
         "CourseContent", back_populates="course", cascade="all, delete-orphan"
     )
     enrollments = relationship("Enrollment", back_populates="course")
+
+    # Constraints and indexes
+    __table_args__ = (Index("idx_courses_created_by", "created_by"),)
