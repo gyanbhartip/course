@@ -1,11 +1,21 @@
 /**
  * AdminPanel Component
  * Admin interface for uploading and managing courses
+ * Updated to use real API with file upload functionality
  */
 
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { mockCourses } from '../data/mockData';
+import { useMyCourses } from '../../hooks/useCourses';
+import {
+    useCreateCourse,
+    useUpdateCourse,
+    useDeleteCourse,
+} from '../../hooks/useCourses';
+import { uploadThumbnail, uploadContent } from '../../services/upload.service';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import ErrorMessage from '../../components/ErrorMessage';
+import EmptyState from '../../components/EmptyState';
 import {
     Upload,
     Plus,
@@ -21,6 +31,7 @@ import {
     User,
     Tag,
 } from 'lucide-react';
+import type { CourseCreate, CourseUpdate } from '../types';
 
 interface CourseUploadData {
     title: string;
@@ -45,6 +56,18 @@ const AdminPanel: React.FC = () => {
         thumbnail: null,
         contentFiles: [],
     });
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [isUploading, setIsUploading] = useState(false);
+
+    // Fetch admin's courses and mutations
+    const {
+        data: courses,
+        isLoading: coursesLoading,
+        error: coursesError,
+    } = useMyCourses();
+    const createCourseMutation = useCreateCourse();
+    const updateCourseMutation = useUpdateCourse();
+    const deleteCourseMutation = useDeleteCourse();
 
     // Check if user is admin
     if (!user || user.role !== 'admin') {
@@ -56,6 +79,27 @@ const AdminPanel: React.FC = () => {
                 <p className="mt-1 text-sm text-gray-500">
                     You need admin privileges to access this page.
                 </p>
+            </div>
+        );
+    }
+
+    // Show loading state
+    if (coursesLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <LoadingSpinner size="lg" text="Loading admin panel..." />
+            </div>
+        );
+    }
+
+    // Show error state
+    if (coursesError) {
+        return (
+            <div className="space-y-6">
+                <ErrorMessage
+                    title="Error loading courses"
+                    message="There was a problem loading the courses. Please try again."
+                />
             </div>
         );
     }
@@ -89,34 +133,115 @@ const AdminPanel: React.FC = () => {
     };
 
     // Handle form submission
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsUploading(true);
+        setUploadProgress(0);
 
-        // In a real app, this would upload to a server
-        console.log('Uploading course:', uploadData);
+        try {
+            let thumbnailUrl = '';
+            let contentUrls: string[] = [];
 
-        // Reset form
-        setUploadData({
-            title: '',
-            description: '',
-            instructor: '',
-            category: '',
-            difficulty: 'beginner',
-            thumbnail: null,
-            contentFiles: [],
-        });
-        setShowUploadForm(false);
+            // Upload thumbnail if provided
+            if (uploadData.thumbnail) {
+                setUploadProgress(20);
+                const thumbnailResponse = await uploadThumbnail(
+                    uploadData.thumbnail,
+                    progressEvent => {
+                        const progress = Math.round(
+                            (progressEvent.loaded * 100) / progressEvent.total,
+                        );
+                        setUploadProgress(20 + progress * 0.3); // 20-50% for thumbnail
+                    },
+                );
+                thumbnailUrl = thumbnailResponse.url;
+            }
 
-        // Show success message (in a real app, you'd use a toast notification)
-        alert('Course uploaded successfully!');
+            // Upload content files
+            if (uploadData.contentFiles.length > 0) {
+                setUploadProgress(50);
+                const contentPromises = uploadData.contentFiles.map(
+                    (file, index) =>
+                        uploadContent(file, progressEvent => {
+                            const progress = Math.round(
+                                (progressEvent.loaded * 100) /
+                                    progressEvent.total,
+                            );
+                            const fileProgress =
+                                progress / uploadData.contentFiles.length;
+                            setUploadProgress(50 + fileProgress * 0.4); // 50-90% for content
+                        }),
+                );
+                const contentResponses = await Promise.all(contentPromises);
+                contentUrls = contentResponses.map(response => response.url);
+            }
+
+            setUploadProgress(90);
+
+            // Create course data
+            const courseData: CourseCreate = {
+                title: uploadData.title,
+                description: uploadData.description,
+                instructor: uploadData.instructor,
+                category: uploadData.category,
+                difficulty: uploadData.difficulty,
+                thumbnail_url: thumbnailUrl,
+                content: contentUrls.map((url, index) => ({
+                    id: `content-${index}`,
+                    title:
+                        uploadData.contentFiles[index]?.name ||
+                        `Content ${index + 1}`,
+                    type: uploadData.contentFiles[index]?.type.startsWith(
+                        'video/',
+                    )
+                        ? 'video'
+                        : 'document',
+                    url: url,
+                    description: '',
+                    duration: 0,
+                })),
+                duration: 0, // Will be calculated by backend
+                status: 'published',
+            };
+
+            // Create course via API
+            await createCourseMutation.mutateAsync(courseData);
+
+            setUploadProgress(100);
+
+            // Reset form
+            setUploadData({
+                title: '',
+                description: '',
+                instructor: '',
+                category: '',
+                difficulty: 'beginner',
+                thumbnail: null,
+                contentFiles: [],
+            });
+            setShowUploadForm(false);
+
+            // Show success message
+            alert('Course uploaded successfully!');
+        } catch (error) {
+            console.error('Failed to upload course:', error);
+            alert('Failed to upload course. Please try again.');
+        } finally {
+            setIsUploading(false);
+            setUploadProgress(0);
+        }
     };
 
     // Handle course deletion
-    const handleDeleteCourse = (courseId: string) => {
+    const handleDeleteCourse = async (courseId: string) => {
         if (window.confirm('Are you sure you want to delete this course?')) {
-            // In a real app, this would make an API call to delete the course
-            console.log('Deleting course:', courseId);
-            alert('Course deleted successfully!');
+            try {
+                await deleteCourseMutation.mutateAsync(courseId);
+                alert('Course deleted successfully!');
+            } catch (error) {
+                console.error('Failed to delete course:', error);
+                alert('Failed to delete course. Please try again.');
+            }
         }
     };
 
@@ -373,19 +498,53 @@ const AdminPanel: React.FC = () => {
                                     </div>
                                 </div>
 
+                                {/* Upload Progress */}
+                                {isUploading && (
+                                    <div className="pt-4 border-t border-gray-200">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <span className="text-sm font-medium text-gray-700">
+                                                Uploading...
+                                            </span>
+                                            <span className="text-sm text-gray-500">
+                                                {Math.round(uploadProgress)}%
+                                            </span>
+                                        </div>
+                                        <div className="w-full bg-gray-200 rounded-full h-2">
+                                            <div
+                                                className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                                                style={{
+                                                    width: `${uploadProgress}%`,
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Form Actions */}
                                 <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
                                     <button
                                         type="button"
                                         onClick={() => setShowUploadForm(false)}
-                                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                        disabled={isUploading}
+                                        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
-                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                                        <Save className="h-4 w-4 mr-2" />
-                                        Upload Course
+                                        disabled={
+                                            isUploading ||
+                                            createCourseMutation.isPending
+                                        }
+                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                                        {isUploading ||
+                                        createCourseMutation.isPending ? (
+                                            <LoadingSpinner size="sm" />
+                                        ) : (
+                                            <>
+                                                <Save className="h-4 w-4 mr-2" />
+                                                Upload Course
+                                            </>
+                                        )}
                                     </button>
                                 </div>
                             </form>
@@ -402,9 +561,9 @@ const AdminPanel: React.FC = () => {
                     </h2>
                 </div>
                 <div className="p-6">
-                    {mockCourses.length > 0 ? (
+                    {courses && courses.length > 0 ? (
                         <div className="space-y-4">
-                            {mockCourses.map(course => (
+                            {courses.map(course => (
                                 <div
                                     key={course.id}
                                     className="border border-gray-200 rounded-lg p-4">
@@ -435,22 +594,23 @@ const AdminPanel: React.FC = () => {
                                                 </span>
                                                 <span className="flex items-center">
                                                     <Clock className="h-4 w-4 mr-1" />
-                                                    {course.duration} min
+                                                    {course.duration || 0} min
                                                 </span>
                                                 <span className="flex items-center">
-                                                    {course.content.some(
+                                                    {course.content?.some(
                                                         c => c.type === 'video',
                                                     ) && (
                                                         <Video className="h-4 w-4 mr-1" />
                                                     )}
-                                                    {course.content.some(
+                                                    {course.content?.some(
                                                         c =>
                                                             c.type ===
                                                             'presentation',
                                                     ) && (
                                                         <FileText className="h-4 w-4 mr-1" />
                                                     )}
-                                                    {course.content.length}{' '}
+                                                    {course.content?.length ||
+                                                        0}{' '}
                                                     content
                                                 </span>
                                             </div>
@@ -470,9 +630,16 @@ const AdminPanel: React.FC = () => {
                                                         course.id,
                                                     )
                                                 }
-                                                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                                                disabled={
+                                                    deleteCourseMutation.isPending
+                                                }
+                                                className="p-2 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
                                                 title="Delete course">
-                                                <Trash2 className="h-4 w-4" />
+                                                {deleteCourseMutation.isPending ? (
+                                                    <LoadingSpinner size="sm" />
+                                                ) : (
+                                                    <Trash2 className="h-4 w-4" />
+                                                )}
                                             </button>
                                         </div>
                                     </div>
@@ -480,15 +647,15 @@ const AdminPanel: React.FC = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="text-center py-8">
-                            <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900">
-                                No courses yet
-                            </h3>
-                            <p className="mt-1 text-sm text-gray-500">
-                                Upload your first course to get started
-                            </p>
-                        </div>
+                        <EmptyState
+                            icon={BookOpen}
+                            title="No courses yet"
+                            description="Upload your first course to get started"
+                            action={{
+                                label: 'Upload Course',
+                                onClick: () => setShowUploadForm(true),
+                            }}
+                        />
                     )}
                 </div>
             </div>

@@ -1,12 +1,18 @@
 /**
  * Dashboard Component
- * Main dashboard showing user's subscribed courses and recent activity
+ * Main dashboard showing user's enrolled courses and recent activity
+ * Updated to use real API data
  */
 
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { getSubscribedCourses, getNotesByUser } from '../data/mockData';
+import { useMyEnrollments } from '../../hooks/useEnrollments';
+import { useNotes } from '../../hooks/useNotes';
+import { useDashboardStats } from '../../hooks/useDashboard';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import ErrorMessage from '../../components/ErrorMessage';
+import EmptyState from '../../components/EmptyState';
 import {
     BookOpen,
     Clock,
@@ -19,18 +25,57 @@ import {
 const Dashboard: React.FC = () => {
     const { user } = useAuth();
 
+    // Fetch real data from API
+    const {
+        data: enrollments,
+        isLoading: enrollmentsLoading,
+        error: enrollmentsError,
+    } = useMyEnrollments();
+    const {
+        data: notes,
+        isLoading: notesLoading,
+        error: notesError,
+    } = useNotes({ size: 3 });
+    const {
+        data: dashboardStats,
+        isLoading: statsLoading,
+        error: statsError,
+    } = useDashboardStats();
+
     if (!user) return null;
 
-    // Get user's subscribed courses and recent notes
-    const subscribedCourses = getSubscribedCourses(user.id);
-    const userNotes = getNotesByUser(user.id);
-    const recentNotes = userNotes.slice(0, 3); // Show only 3 most recent notes
+    // Show loading state
+    if (enrollmentsLoading || notesLoading || statsLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <LoadingSpinner size="lg" text="Loading dashboard..." />
+            </div>
+        );
+    }
 
-    // Calculate some stats
-    const totalCourses = subscribedCourses.length;
-    const totalNotes = userNotes.length;
-    const totalDuration = subscribedCourses.reduce(
-        (sum, course) => sum + course.duration,
+    // Show error state
+    if (enrollmentsError || notesError || statsError) {
+        return (
+            <div className="space-y-6">
+                <ErrorMessage
+                    title="Error loading dashboard"
+                    message="There was a problem loading your dashboard data. Please try again."
+                />
+            </div>
+        );
+    }
+
+    // Get enrolled courses and recent notes
+    const enrolledCourses =
+        enrollments?.map(enrollment => enrollment.course) || [];
+    const recentNotes = notes || [];
+
+    // Calculate stats from API data or use dashboard stats
+    const totalCourses =
+        dashboardStats?.enrolled_courses || enrolledCourses.length;
+    const totalNotes = dashboardStats?.notes_count || recentNotes.length;
+    const totalDuration = enrolledCourses.reduce(
+        (sum, course) => sum + (course.duration || 0),
         0,
     );
 
@@ -113,16 +158,24 @@ const Dashboard: React.FC = () => {
                         </div>
                     </div>
                     <div className="p-6">
-                        {subscribedCourses.length > 0 ? (
+                        {enrolledCourses.length > 0 ? (
                             <div className="space-y-4">
-                                {subscribedCourses.slice(0, 3).map(course => (
+                                {enrolledCourses.slice(0, 3).map(course => (
                                     <div
                                         key={course.id}
                                         className="flex items-center space-x-4">
                                         <div className="flex-shrink-0">
-                                            <div className="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center">
-                                                <BookOpen className="h-6 w-6 text-gray-500" />
-                                            </div>
+                                            {course.thumbnail_url ? (
+                                                <img
+                                                    src={course.thumbnail_url}
+                                                    alt={course.title}
+                                                    className="h-12 w-12 rounded-lg object-cover"
+                                                />
+                                            ) : (
+                                                <div className="h-12 w-12 bg-gray-200 rounded-lg flex items-center justify-center">
+                                                    <BookOpen className="h-6 w-6 text-gray-500" />
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <Link
@@ -137,9 +190,11 @@ const Dashboard: React.FC = () => {
                                                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                                                     {course.difficulty}
                                                 </span>
-                                                <span className="ml-2 text-xs text-gray-500">
-                                                    {course.duration} min
-                                                </span>
+                                                {course.duration && (
+                                                    <span className="ml-2 text-xs text-gray-500">
+                                                        {course.duration} min
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="flex-shrink-0">
@@ -154,15 +209,17 @@ const Dashboard: React.FC = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-6">
-                                <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-                                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                                    No courses yet
-                                </h3>
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Subscribe to courses to start learning
-                                </p>
-                            </div>
+                            <EmptyState
+                                icon={BookOpen}
+                                title="No courses yet"
+                                description="Enroll in courses to start learning"
+                                action={{
+                                    label: 'Browse Courses',
+                                    onClick: () => {
+                                        window.location.href = '/courses';
+                                    },
+                                }}
+                            />
                         )}
                     </div>
                 </div>
@@ -197,22 +254,24 @@ const Dashboard: React.FC = () => {
                                         <div className="flex items-center mt-2 text-xs text-gray-500">
                                             <Calendar className="h-3 w-3 mr-1" />
                                             {new Date(
-                                                note.createdAt,
+                                                note.created_at,
                                             ).toLocaleDateString()}
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-6">
-                                <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                                    No notes yet
-                                </h3>
-                                <p className="mt-1 text-sm text-gray-500">
-                                    Start taking notes while learning
-                                </p>
-                            </div>
+                            <EmptyState
+                                icon={FileText}
+                                title="No notes yet"
+                                description="Start taking notes while learning"
+                                action={{
+                                    label: 'View Notes',
+                                    onClick: () => {
+                                        window.location.href = '/notes';
+                                    },
+                                }}
+                            />
                         )}
                     </div>
                 </div>

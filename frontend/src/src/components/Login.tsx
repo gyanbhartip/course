@@ -150,6 +150,10 @@ const Login: React.FC = () => {
                                 <strong>Admin:</strong> admin@example.com /
                                 password
                             </div>
+                            <div className="mt-2 text-xs text-gray-500">
+                                Note: These are demo credentials. In production,
+                                use real user accounts.
+                            </div>
                         </div>
                     </div>
                 </form>

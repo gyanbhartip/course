@@ -1,67 +1,82 @@
 /**
  * Authentication Context
  * Provides authentication state and methods throughout the application
+ * Updated to use real API with JWT token management
  */
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { User, AuthContextType, ReactNode } from '../types';
-import { getUserByEmail } from '../data/mockData';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+    login as loginAPI,
+    getCurrentUser,
+    setTokens,
+    clearTokens,
+    isAuthenticated as checkAuth,
+} from '../../services/api';
+import type { User, AuthContextType, UserLogin, Token } from '../types';
 
 // Create the authentication context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // AuthProvider component to wrap the application
 interface AuthProviderProps {
-    children: ReactNode;
+    children: React.ReactNode;
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const queryClient = useQueryClient();
 
-    // Check for existing authentication on app load
+    // Query to get current user if authenticated
+    const {
+        data: currentUser,
+        isLoading: userLoading,
+        error,
+    } = useQuery({
+        queryKey: ['auth', 'me'],
+        queryFn: getCurrentUser,
+        enabled: checkAuth(),
+        retry: false,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
+
+    // Update user state when current user data changes
     useEffect(() => {
-        const checkAuth = () => {
-            try {
-                const storedUser = localStorage.getItem('user');
-                if (storedUser) {
-                    setUser(JSON.parse(storedUser));
-                }
-            } catch (error) {
-                console.error('Error parsing stored user data:', error);
-                localStorage.removeItem('user');
-            } finally {
-                setIsLoading(false);
-            }
-        };
+        if (currentUser) {
+            setUser(currentUser);
+        } else if (error) {
+            // If there's an error getting current user, clear auth state
+            setUser(null);
+            clearTokens();
+        }
+        setIsLoading(false);
+    }, [currentUser, error]);
 
-        checkAuth();
-    }, []);
+    // Login mutation
+    const loginMutation = useMutation({
+        mutationFn: async (credentials: UserLogin): Promise<Token> => {
+            return loginAPI(credentials);
+        },
+        onSuccess: (tokens: Token) => {
+            // Store tokens
+            setTokens(tokens);
+            // Invalidate and refetch current user
+            queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+        },
+        onError: () => {
+            // Clear any existing tokens on login failure
+            clearTokens();
+        },
+    });
 
     // Login function
     const login = async (email: string, password: string): Promise<boolean> => {
-        setIsLoading(true);
-
         try {
-            // Simulate API call delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Find user by email (in real app, this would be an API call)
-            const foundUser = getUserByEmail(email);
-
-            if (foundUser && password === 'password') {
-                // Simple password check for demo
-                setUser(foundUser);
-                localStorage.setItem('user', JSON.stringify(foundUser));
-                setIsLoading(false);
-                return true;
-            }
-
-            setIsLoading(false);
-            return false;
+            await loginMutation.mutateAsync({ email, password });
+            return true;
         } catch (error) {
             console.error('Login error:', error);
-            setIsLoading(false);
             return false;
         }
     };
@@ -69,18 +84,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Logout function
     const logout = () => {
         setUser(null);
-        localStorage.removeItem('user');
+        clearTokens();
+        // Clear all cached data
+        queryClient.clear();
     };
 
     // Check if user is authenticated
-    const isAuthenticated = user !== null;
+    const isAuthenticated = user !== null && checkAuth();
 
     const value: AuthContextType = {
         user,
         login,
         logout,
         isAuthenticated,
-        isLoading,
+        isLoading: isLoading || userLoading || loginMutation.isPending,
     };
 
     return (

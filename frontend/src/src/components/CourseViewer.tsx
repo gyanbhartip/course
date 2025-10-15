@@ -1,12 +1,19 @@
 /**
  * CourseViewer Component
  * Displays course content including videos and presentations
+ * Updated to use real API data with enrollment checking
  */
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { mockCourses } from '../data/mockData';
+import { useCourse } from '../../hooks/useCourse';
+import { useEnrollmentStatus } from '../../hooks/useEnrollments';
+import { useEnrollInCourse } from '../../hooks/useEnrollments';
+import { useCourseNotes, useCreateNote } from '../../hooks/useNotes';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import ErrorMessage from '../../components/ErrorMessage';
+import EmptyState from '../../components/EmptyState';
 import {
     Play,
     Pause,
@@ -22,6 +29,7 @@ import {
     Circle,
     Plus,
     Save,
+    Lock,
 } from 'lucide-react';
 
 const CourseViewer: React.FC = () => {
@@ -33,35 +41,96 @@ const CourseViewer: React.FC = () => {
     const [showNoteForm, setShowNoteForm] = useState(false);
     const [noteTitle, setNoteTitle] = useState('');
     const [noteContent, setNoteContent] = useState('');
-    const [notes, setNotes] = useState<
-        Array<{ id: string; title: string; content: string; createdAt: Date }>
-    >([]);
 
     const videoRef = useRef<HTMLVideoElement>(null);
 
-    // Find the course
-    const course = mockCourses.find(c => c.id === courseId);
+    // Fetch course data and enrollment status
+    const {
+        data: course,
+        isLoading: courseLoading,
+        error: courseError,
+    } = useCourse(courseId || '');
+    const { data: enrollmentStatus, isLoading: enrollmentLoading } =
+        useEnrollmentStatus(courseId || '');
+    const { data: notes, isLoading: notesLoading } = useCourseNotes(
+        courseId || '',
+    );
+    const enrollMutation = useEnrollInCourse();
+    const createNoteMutation = useCreateNote();
 
-    if (!course) {
+    const isEnrolled = enrollmentStatus?.enrolled || false;
+    const isLoading = courseLoading || enrollmentLoading || notesLoading;
+
+    // Show loading state
+    if (isLoading) {
         return (
-            <div className="text-center py-12">
-                <BookOpen className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">
-                    Course not found
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                    The course you're looking for doesn't exist.
-                </p>
+            <div className="min-h-screen flex items-center justify-center">
+                <LoadingSpinner size="lg" text="Loading course..." />
+            </div>
+        );
+    }
+
+    // Show error state
+    if (courseError || !course) {
+        return (
+            <div className="space-y-6">
+                <ErrorMessage
+                    title="Course not found"
+                    message="The course you're looking for doesn't exist or there was an error loading it."
+                />
                 <Link
                     to="/courses"
-                    className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200">
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200">
+                    <ChevronLeft className="h-4 w-4 mr-1" />
                     Back to Courses
                 </Link>
             </div>
         );
     }
 
-    const currentContent = course.content[currentContentIndex];
+    // Check if user is enrolled
+    if (!isEnrolled) {
+        return (
+            <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow p-6">
+                    <div className="text-center">
+                        <Lock className="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 className="mt-2 text-lg font-medium text-gray-900">
+                            Course Access Required
+                        </h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                            You need to enroll in this course to access its
+                            content.
+                        </p>
+                        <div className="mt-6 flex justify-center space-x-4">
+                            <button
+                                onClick={() => enrollMutation.mutate(courseId!)}
+                                disabled={enrollMutation.isPending}
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                                {enrollMutation.isPending ? (
+                                    <LoadingSpinner size="sm" />
+                                ) : (
+                                    <>
+                                        <Plus className="h-4 w-4 mr-2" />
+                                        Enroll Now
+                                    </>
+                                )}
+                            </button>
+                            <Link
+                                to="/courses"
+                                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                                <ChevronLeft className="h-4 w-4 mr-1" />
+                                Back to Courses
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Get current content (assuming course has content array)
+    const currentContent = course.content?.[currentContentIndex];
 
     // Handle video controls
     const togglePlayPause = () => {
@@ -99,45 +168,29 @@ const CourseViewer: React.FC = () => {
     };
 
     const goToNext = () => {
-        if (currentContentIndex < course.content.length - 1) {
+        if (currentContentIndex < (course.content?.length || 0) - 1) {
             setCurrentContentIndex(currentContentIndex + 1);
             setIsPlaying(false);
         }
     };
 
-    // Note handling
-    const handleSaveNote = () => {
-        if (noteTitle.trim() && noteContent.trim()) {
-            const newNote = {
-                id: Date.now().toString(),
-                title: noteTitle,
-                content: noteContent,
-                createdAt: new Date(),
-            };
-            setNotes([...notes, newNote]);
-            setNoteTitle('');
-            setNoteContent('');
-            setShowNoteForm(false);
+    // Note handling with API
+    const handleSaveNote = async () => {
+        if (noteTitle.trim() && noteContent.trim() && courseId) {
+            try {
+                await createNoteMutation.mutateAsync({
+                    title: noteTitle,
+                    content: noteContent,
+                    course_id: courseId,
+                });
+                setNoteTitle('');
+                setNoteContent('');
+                setShowNoteForm(false);
+            } catch (error) {
+                console.error('Failed to save note:', error);
+            }
         }
     };
-
-    // Load notes from localStorage on component mount
-    useEffect(() => {
-        const savedNotes = localStorage.getItem(
-            `notes_${courseId}_${user?.id}`,
-        );
-        if (savedNotes) {
-            setNotes(JSON.parse(savedNotes));
-        }
-    }, [courseId, user?.id]);
-
-    // Save notes to localStorage whenever notes change
-    useEffect(() => {
-        localStorage.setItem(
-            `notes_${courseId}_${user?.id}`,
-            JSON.stringify(notes),
-        );
-    }, [notes, courseId, user?.id]);
 
     return (
         <div className="space-y-6">
@@ -154,11 +207,11 @@ const CourseViewer: React.FC = () => {
                         <div className="mt-2 flex items-center space-x-4 text-sm text-gray-500">
                             <span className="flex items-center">
                                 <Clock className="h-4 w-4 mr-1" />
-                                {course.duration} min
+                                {course.duration || 0} min
                             </span>
                             <span className="flex items-center">
                                 <BookOpen className="h-4 w-4 mr-1" />
-                                {course.content.length} lessons
+                                {course.content?.length || 0} lessons
                             </span>
                         </div>
                     </div>
@@ -177,7 +230,20 @@ const CourseViewer: React.FC = () => {
                     <div className="bg-white rounded-lg shadow overflow-hidden">
                         {/* Content Player */}
                         <div className="relative bg-black">
-                            {currentContent.type === 'video' ? (
+                            {!currentContent ? (
+                                <div className="h-64 sm:h-80 lg:h-96 flex items-center justify-center bg-gray-100">
+                                    <div className="text-center">
+                                        <BookOpen className="mx-auto h-16 w-16 text-gray-400" />
+                                        <h3 className="mt-2 text-lg font-medium text-gray-900">
+                                            No Content Available
+                                        </h3>
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            This course doesn't have any content
+                                            yet.
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : currentContent.type === 'video' ? (
                                 <div className="relative">
                                     <video
                                         ref={videoRef}
@@ -224,14 +290,17 @@ const CourseViewer: React.FC = () => {
                                     <div className="text-center">
                                         <FileText className="mx-auto h-16 w-16 text-gray-400" />
                                         <h3 className="mt-2 text-lg font-medium text-gray-900">
-                                            Presentation
+                                            {currentContent.type ===
+                                            'presentation'
+                                                ? 'Presentation'
+                                                : 'Content'}
                                         </h3>
                                         <p className="mt-1 text-sm text-gray-500">
                                             {currentContent.title}
                                         </p>
                                         <button className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
                                             <FileText className="h-4 w-4 mr-2" />
-                                            Open Presentation
+                                            Open Content
                                         </button>
                                     </div>
                                 </div>
@@ -243,14 +312,15 @@ const CourseViewer: React.FC = () => {
                             <div className="flex items-start justify-between">
                                 <div>
                                     <h2 className="text-xl font-semibold text-gray-900">
-                                        {currentContent.title}
+                                        {currentContent?.title || 'No Content'}
                                     </h2>
                                     <p className="mt-1 text-sm text-gray-500">
                                         Lesson {currentContentIndex + 1} of{' '}
-                                        {course.content.length}
+                                        {course.content?.length || 0}
                                     </p>
                                     <p className="mt-2 text-gray-600">
-                                        {currentContent.description}
+                                        {currentContent?.description ||
+                                            'No description available.'}
                                     </p>
                                 </div>
                                 <button
@@ -309,9 +379,18 @@ const CourseViewer: React.FC = () => {
                                             </button>
                                             <button
                                                 onClick={handleSaveNote}
-                                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                                                <Save className="h-4 w-4 mr-1" />
-                                                Save Note
+                                                disabled={
+                                                    createNoteMutation.isPending
+                                                }
+                                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                                                {createNoteMutation.isPending ? (
+                                                    <LoadingSpinner size="sm" />
+                                                ) : (
+                                                    <>
+                                                        <Save className="h-4 w-4 mr-1" />
+                                                        Save Note
+                                                    </>
+                                                )}
                                             </button>
                                         </div>
                                     </div>
@@ -330,14 +409,14 @@ const CourseViewer: React.FC = () => {
 
                                 <span className="text-sm text-gray-500">
                                     {currentContentIndex + 1} /{' '}
-                                    {course.content.length}
+                                    {course.content?.length || 0}
                                 </span>
 
                                 <button
                                     onClick={goToNext}
                                     disabled={
                                         currentContentIndex ===
-                                        course.content.length - 1
+                                        (course.content?.length || 0) - 1
                                     }
                                     className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                     Next
@@ -358,40 +437,51 @@ const CourseViewer: React.FC = () => {
                             </h3>
                         </div>
                         <div className="p-4">
-                            <div className="space-y-2">
-                                {course.content.map((content, index) => (
-                                    <button
-                                        key={content.id}
-                                        onClick={() =>
-                                            setCurrentContentIndex(index)
-                                        }
-                                        className={`w-full text-left p-3 rounded-lg transition-colors ${
-                                            index === currentContentIndex
-                                                ? 'bg-indigo-50 border border-indigo-200'
-                                                : 'hover:bg-gray-50'
-                                        }`}>
-                                        <div className="flex items-center">
-                                            {index === currentContentIndex ? (
-                                                <CheckCircle className="h-5 w-5 text-indigo-600 mr-3" />
-                                            ) : (
-                                                <Circle className="h-5 w-5 text-gray-400 mr-3" />
-                                            )}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-gray-900 truncate">
-                                                    {content.title}
-                                                </p>
-                                                <p className="text-xs text-gray-500">
-                                                    {content.type === 'video'
-                                                        ? 'Video'
-                                                        : 'Presentation'}
-                                                    {content.duration &&
-                                                        ` • ${content.duration} min`}
-                                                </p>
+                            {course.content && course.content.length > 0 ? (
+                                <div className="space-y-2">
+                                    {course.content.map((content, index) => (
+                                        <button
+                                            key={content.id}
+                                            onClick={() =>
+                                                setCurrentContentIndex(index)
+                                            }
+                                            className={`w-full text-left p-3 rounded-lg transition-colors ${
+                                                index === currentContentIndex
+                                                    ? 'bg-indigo-50 border border-indigo-200'
+                                                    : 'hover:bg-gray-50'
+                                            }`}>
+                                            <div className="flex items-center">
+                                                {index ===
+                                                currentContentIndex ? (
+                                                    <CheckCircle className="h-5 w-5 text-indigo-600 mr-3" />
+                                                ) : (
+                                                    <Circle className="h-5 w-5 text-gray-400 mr-3" />
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                                        {content.title}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {content.type ===
+                                                        'video'
+                                                            ? 'Video'
+                                                            : content.type ===
+                                                              'presentation'
+                                                            ? 'Presentation'
+                                                            : 'Content'}
+                                                        {content.duration &&
+                                                            ` • ${content.duration} min`}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-gray-500 text-center py-4">
+                                    No content available for this course.
+                                </p>
+                            )}
                         </div>
                     </div>
 
@@ -403,7 +493,7 @@ const CourseViewer: React.FC = () => {
                             </h3>
                         </div>
                         <div className="p-4">
-                            {notes.length > 0 ? (
+                            {notes && notes.length > 0 ? (
                                 <div className="space-y-3">
                                     {notes.map(note => (
                                         <div
@@ -417,7 +507,7 @@ const CourseViewer: React.FC = () => {
                                             </p>
                                             <p className="text-xs text-gray-400 mt-1">
                                                 {new Date(
-                                                    note.createdAt,
+                                                    note.created_at,
                                                 ).toLocaleDateString()}
                                             </p>
                                         </div>

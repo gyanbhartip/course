@@ -1,12 +1,18 @@
 /**
  * NotesList Component
  * Displays all user notes with search and filter functionality
+ * Updated to use real API data with full CRUD operations
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { mockCourses } from '../data/mockData';
+import { useNotes } from '../../hooks/useNotes';
+import { useUpdateNote, useDeleteNote } from '../../hooks/useNotes';
+import { useCourses } from '../../hooks/useCourses';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import ErrorMessage from '../../components/ErrorMessage';
+import EmptyState from '../../components/EmptyState';
 import {
     Search,
     Filter,
@@ -18,84 +24,45 @@ import {
     FileText,
     X,
 } from 'lucide-react';
-
-interface Note {
-    id: string;
-    title: string;
-    content: string;
-    courseId: string;
-    contentId?: string;
-    createdAt: Date;
-    updatedAt: Date;
-}
+import type { Note } from '../types';
 
 const NotesList: React.FC = () => {
     const { user } = useAuth();
-    const [notes, setNotes] = useState<Note[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCourse, setSelectedCourse] = useState<string>('all');
     const [editingNote, setEditingNote] = useState<Note | null>(null);
     const [editTitle, setEditTitle] = useState('');
     const [editContent, setEditContent] = useState('');
 
-    // Load notes from localStorage
-    useEffect(() => {
-        if (user) {
-            const allNotes: Note[] = [];
-            mockCourses.forEach(course => {
-                const courseNotes = localStorage.getItem(
-                    `notes_${course.id}_${user.id}`,
-                );
-                if (courseNotes) {
-                    const parsedNotes = JSON.parse(courseNotes).map(
-                        (note: any) => ({
-                            ...note,
-                            courseId: course.id,
-                            createdAt: new Date(note.createdAt),
-                            updatedAt: new Date(note.updatedAt),
-                        }),
-                    );
-                    allNotes.push(...parsedNotes);
-                }
-            });
-            setNotes(allNotes);
-        }
-    }, [user]);
-
-    // Filter notes based on search and course selection
-    const filteredNotes = notes.filter(note => {
-        const matchesSearch =
-            note.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            note.content.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCourse =
-            selectedCourse === 'all' || note.courseId === selectedCourse;
-        return matchesSearch && matchesCourse;
+    // Fetch notes and courses from API
+    const {
+        data: notes,
+        isLoading: notesLoading,
+        error: notesError,
+    } = useNotes({
+        search: searchTerm || undefined,
+        course_id: selectedCourse === 'all' ? undefined : selectedCourse,
     });
+    const { data: coursesData } = useCourses();
+    const updateNoteMutation = useUpdateNote();
+    const deleteNoteMutation = useDeleteNote();
+
+    const courses = coursesData?.courses || [];
+    const filteredNotes = notes || [];
 
     // Get course name by ID
     const getCourseName = (courseId: string) => {
-        const course = mockCourses.find(c => c.id === courseId);
+        const course = courses.find(c => c.id === courseId);
         return course ? course.title : 'Unknown Course';
     };
 
     // Handle note deletion
-    const handleDeleteNote = (noteId: string, courseId: string) => {
+    const handleDeleteNote = async (noteId: string) => {
         if (window.confirm('Are you sure you want to delete this note?')) {
-            const courseNotes = localStorage.getItem(
-                `notes_${courseId}_${user?.id}`,
-            );
-            if (courseNotes) {
-                const parsedNotes = JSON.parse(courseNotes);
-                const updatedNotes = parsedNotes.filter(
-                    (note: any) => note.id !== noteId,
-                );
-                localStorage.setItem(
-                    `notes_${courseId}_${user?.id}`,
-                    JSON.stringify(updatedNotes),
-                );
-
-                // Update local state
-                setNotes(notes.filter(note => note.id !== noteId));
+            try {
+                await deleteNoteMutation.mutateAsync(noteId);
+            } catch (error) {
+                console.error('Failed to delete note:', error);
             }
         }
     };
@@ -108,46 +75,22 @@ const NotesList: React.FC = () => {
     };
 
     // Save edited note
-    const handleSaveEdit = () => {
+    const handleSaveEdit = async () => {
         if (editingNote && editTitle.trim() && editContent.trim()) {
-            const courseNotes = localStorage.getItem(
-                `notes_${editingNote.courseId}_${user?.id}`,
-            );
-            if (courseNotes) {
-                const parsedNotes = JSON.parse(courseNotes);
-                const updatedNotes = parsedNotes.map((note: any) =>
-                    note.id === editingNote.id
-                        ? {
-                              ...note,
-                              title: editTitle,
-                              content: editContent,
-                              updatedAt: new Date(),
-                          }
-                        : note,
-                );
-                localStorage.setItem(
-                    `notes_${editingNote.courseId}_${user?.id}`,
-                    JSON.stringify(updatedNotes),
-                );
-
-                // Update local state
-                setNotes(
-                    notes.map(note =>
-                        note.id === editingNote.id
-                            ? {
-                                  ...note,
-                                  title: editTitle,
-                                  content: editContent,
-                                  updatedAt: new Date(),
-                              }
-                            : note,
-                    ),
-                );
+            try {
+                await updateNoteMutation.mutateAsync({
+                    noteId: editingNote.id,
+                    noteData: {
+                        title: editTitle,
+                        content: editContent,
+                    },
+                });
+                setEditingNote(null);
+                setEditTitle('');
+                setEditContent('');
+            } catch (error) {
+                console.error('Failed to update note:', error);
             }
-
-            setEditingNote(null);
-            setEditTitle('');
-            setEditContent('');
         }
     };
 
@@ -160,6 +103,27 @@ const NotesList: React.FC = () => {
 
     if (!user) return null;
 
+    // Show loading state
+    if (notesLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <LoadingSpinner size="lg" text="Loading notes..." />
+            </div>
+        );
+    }
+
+    // Show error state
+    if (notesError) {
+        return (
+            <div className="space-y-6">
+                <ErrorMessage
+                    title="Error loading notes"
+                    message="There was a problem loading your notes. Please try again."
+                />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -169,9 +133,11 @@ const NotesList: React.FC = () => {
                         My Notes
                     </h1>
                     <p className="mt-1 text-sm text-gray-500">
-                        {notes.length} note{notes.length !== 1 ? 's' : ''}{' '}
-                        across {new Set(notes.map(n => n.courseId)).size} course
-                        {new Set(notes.map(n => n.courseId)).size !== 1
+                        {filteredNotes.length} note
+                        {filteredNotes.length !== 1 ? 's' : ''} across{' '}
+                        {new Set(filteredNotes.map(n => n.course_id)).size}{' '}
+                        course
+                        {new Set(filteredNotes.map(n => n.course_id)).size !== 1
                             ? 's'
                             : ''}
                     </p>
@@ -205,7 +171,7 @@ const NotesList: React.FC = () => {
                             onChange={e => setSelectedCourse(e.target.value)}
                             className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm appearance-none">
                             <option value="all">All Courses</option>
-                            {mockCourses.map(course => (
+                            {courses.map(course => (
                                 <option key={course.id} value={course.id}>
                                     {course.title}
                                 </option>
@@ -259,8 +225,15 @@ const NotesList: React.FC = () => {
                                         </button>
                                         <button
                                             onClick={handleSaveEdit}
-                                            className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
-                                            Save Changes
+                                            disabled={
+                                                updateNoteMutation.isPending
+                                            }
+                                            className="px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
+                                            {updateNoteMutation.isPending ? (
+                                                <LoadingSpinner size="sm" />
+                                            ) : (
+                                                'Save Changes'
+                                            )}
                                         </button>
                                     </div>
                                 </div>
@@ -278,28 +251,29 @@ const NotesList: React.FC = () => {
                                             <div className="flex items-center text-sm text-gray-500">
                                                 <BookOpen className="h-4 w-4 mr-1" />
                                                 <Link
-                                                    to={`/course/${note.courseId}`}
+                                                    to={`/course/${note.course_id}`}
                                                     className="hover:text-indigo-600">
                                                     {getCourseName(
-                                                        note.courseId,
+                                                        note.course_id,
                                                     )}
                                                 </Link>
                                                 <Calendar className="h-4 w-4 ml-4 mr-1" />
                                                 <span>
                                                     Created{' '}
                                                     {new Date(
-                                                        note.createdAt,
+                                                        note.created_at,
                                                     ).toLocaleDateString()}
-                                                    {note.updatedAt.getTime() !==
-                                                        note.createdAt.getTime() && (
-                                                        <span>
-                                                            {' '}
-                                                            • Updated{' '}
-                                                            {new Date(
-                                                                note.updatedAt,
-                                                            ).toLocaleDateString()}
-                                                        </span>
-                                                    )}
+                                                    {note.updated_at &&
+                                                        note.updated_at !==
+                                                            note.created_at && (
+                                                            <span>
+                                                                {' '}
+                                                                • Updated{' '}
+                                                                {new Date(
+                                                                    note.updated_at,
+                                                                ).toLocaleDateString()}
+                                                            </span>
+                                                        )}
                                                 </span>
                                             </div>
                                         </div>
@@ -314,14 +288,18 @@ const NotesList: React.FC = () => {
                                             </button>
                                             <button
                                                 onClick={() =>
-                                                    handleDeleteNote(
-                                                        note.id,
-                                                        note.courseId,
-                                                    )
+                                                    handleDeleteNote(note.id)
                                                 }
-                                                className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                                                disabled={
+                                                    deleteNoteMutation.isPending
+                                                }
+                                                className="p-2 text-gray-400 hover:text-red-600 transition-colors disabled:opacity-50"
                                                 title="Delete note">
-                                                <Trash2 className="h-4 w-4" />
+                                                {deleteNoteMutation.isPending ? (
+                                                    <LoadingSpinner size="sm" />
+                                                ) : (
+                                                    <Trash2 className="h-4 w-4" />
+                                                )}
                                             </button>
                                         </div>
                                     </div>
@@ -332,37 +310,34 @@ const NotesList: React.FC = () => {
                 </div>
             ) : (
                 /* Empty State */
-                <div className="text-center py-12">
-                    <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">
-                        {searchTerm || selectedCourse !== 'all'
+                <EmptyState
+                    icon={FileText}
+                    title={
+                        searchTerm || selectedCourse !== 'all'
                             ? 'No notes found'
-                            : 'No notes yet'}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                        {searchTerm || selectedCourse !== 'all'
+                            : 'No notes yet'
+                    }
+                    description={
+                        searchTerm || selectedCourse !== 'all'
                             ? 'Try adjusting your search or filter criteria'
-                            : 'Start taking notes while learning to see them here'}
-                    </p>
-                    {searchTerm || selectedCourse !== 'all' ? (
-                        <button
-                            onClick={() => {
-                                setSearchTerm('');
-                                setSelectedCourse('all');
-                            }}
-                            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200">
-                            <X className="h-4 w-4 mr-1" />
-                            Clear Filters
-                        </button>
-                    ) : (
-                        <Link
-                            to="/courses"
-                            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-indigo-600 bg-indigo-100 hover:bg-indigo-200">
-                            <Plus className="h-4 w-4 mr-1" />
-                            Start Learning
-                        </Link>
-                    )}
-                </div>
+                            : 'Start taking notes while learning to see them here'
+                    }
+                    action={
+                        searchTerm || selectedCourse !== 'all'
+                            ? {
+                                  label: 'Clear Filters',
+                                  onClick: () => {
+                                      setSearchTerm('');
+                                      setSelectedCourse('all');
+                                  },
+                              }
+                            : {
+                                  label: 'Start Learning',
+                                  onClick: () =>
+                                      (window.location.href = '/courses'),
+                              }
+                    }
+                />
             )}
         </div>
     );
