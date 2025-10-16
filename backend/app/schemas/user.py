@@ -2,7 +2,7 @@
 Pydantic schemas for user-related operations.
 """
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, validator
 from typing import Optional
 from datetime import datetime
 from uuid import UUID
@@ -20,6 +20,24 @@ class UserCreate(UserBase):
     """Schema for user creation."""
 
     password: str
+
+    @validator("password")
+    def validate_password(cls, v):
+        """Validate password length and requirements."""
+        if not v:
+            raise ValueError("Password is required")
+
+        # Check password length (bcrypt has a 72-byte limit)
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError(
+                "Password cannot be longer than 72 bytes. Please use a shorter password."
+            )
+
+        # Check minimum length
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+
+        return v
 
 
 class UserUpdate(BaseModel):
@@ -54,3 +72,43 @@ class UserInDB(UserResponse):
     """Schema for user in database (includes password hash)."""
 
     password_hash: str
+
+
+class UserCreateByAdmin(UserBase):
+    """Schema for admin creating users with role assignment."""
+
+    password: str
+    role: Optional[UserRole] = UserRole.USER
+
+    @validator("password")
+    def validate_password(cls, v):
+        """Validate password length and requirements."""
+        if not v:
+            raise ValueError("Password is required")
+
+        # Check password length (bcrypt has a 72-byte limit)
+        if len(v.encode("utf-8")) > 72:
+            raise ValueError(
+                "Password cannot be longer than 72 bytes. Please use a shorter password."
+            )
+
+        # Check minimum length
+        if len(v) < 8:
+            raise ValueError("Password must be at least 8 characters long")
+
+        return v
+
+
+class UserRoleUpdate(BaseModel):
+    """Schema for updating user role."""
+
+    role: UserRole
+
+
+class UserListResponse(BaseModel):
+    """Schema for paginated user list."""
+
+    users: list[UserResponse]
+    total: int
+    page: int
+    page_size: int

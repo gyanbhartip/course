@@ -141,7 +141,10 @@ async def websocket_notifications(websocket: WebSocket, token: str = None):
         return
 
     # Get database session
-    async with get_db() as db:
+    db_gen = get_db()
+    db = await db_gen.__anext__()
+
+    try:
         user = await get_user_from_token(token, db)
         if not user:
             await websocket.close(code=4001, reason="Invalid token")
@@ -228,6 +231,13 @@ async def websocket_notifications(websocket: WebSocket, token: str = None):
         finally:
             manager.disconnect(websocket, user.id)
 
+    finally:
+        # Clean up database session
+        try:
+            await db_gen.__anext__()
+        except StopAsyncIteration:
+            pass
+
 
 @router.websocket("/progress/{course_id}")
 async def websocket_progress(websocket: WebSocket, course_id: UUID, token: str = None):
@@ -244,7 +254,10 @@ async def websocket_progress(websocket: WebSocket, course_id: UUID, token: str =
         return
 
     # Get database session
-    async with get_db() as db:
+    db_gen = get_db()
+    db = await db_gen.__anext__()
+
+    try:
         user = await get_user_from_token(token, db)
         if not user:
             await websocket.close(code=4001, reason="Invalid token")
@@ -377,6 +390,13 @@ async def websocket_progress(websocket: WebSocket, course_id: UUID, token: str =
         finally:
             manager.disconnect(websocket, user.id)
             manager.remove_course_connection(websocket, course_id)
+
+    finally:
+        # Clean up database session
+        try:
+            await db_gen.__anext__()
+        except StopAsyncIteration:
+            pass
 
 
 # Utility functions for sending notifications

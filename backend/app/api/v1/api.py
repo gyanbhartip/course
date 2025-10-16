@@ -12,9 +12,10 @@ from app.api.v1.endpoints import (
     progress,
     streaming,
     dashboard,
-    websocket,
     monitoring,
     search,
+    users,
+    invitations,
 )
 
 api_router = APIRouter()
@@ -28,6 +29,7 @@ api_router.include_router(upload.router)
 api_router.include_router(progress.router)
 api_router.include_router(streaming.router)
 api_router.include_router(dashboard.router)
-api_router.include_router(websocket.router)
 api_router.include_router(monitoring.router)
 api_router.include_router(search.router)
+api_router.include_router(users.router)
+api_router.include_router(invitations.router)

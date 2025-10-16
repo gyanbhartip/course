@@ -16,7 +16,7 @@ flower==2.0.1             # Celery monitoring
 
 # Authentication & Security
 python-jose[cryptography]==3.5.0  # JWT tokens
-passlib[bcrypt]==1.7.4    # Password hashing
+bcrypt==5.0.0             # Password hashing
 python-multipart==0.0.20  # File upload support
 
 # Storage & Media Processing

@@ -8,6 +8,7 @@ import { Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '../components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 
 const Login: React.FC = () => {
     const { login, isLoading } = useAuth();
@@ -155,6 +156,18 @@ const Login: React.FC = () => {
                                 use real user accounts.
                             </div>
                         </div>
+                    </div>
+
+                    {/* Registration Link */}
+                    <div className="text-center mt-6">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Don't have an account?{' '}
+                            <Link
+                                to="/register"
+                                className="font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400">
+                                Sign up
+                            </Link>
+                        </p>
                     </div>
                 </form>
             </div>

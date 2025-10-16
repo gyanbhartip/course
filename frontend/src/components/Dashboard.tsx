@@ -4,8 +4,8 @@
  * Updated to use real API data
  */
 
-import React from 'react';
-import { Link } from 'react-router-dom';
+import type React from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useMyEnrollments } from '../hooks/useEnrollments';
 import { useNotes } from '../hooks/useNotes';
@@ -26,6 +26,7 @@ import {
 
 const Dashboard: React.FC = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
 
     // Fetch real data from API
     const {
@@ -223,8 +224,7 @@ const Dashboard: React.FC = () => {
                                 description="Start a new course to see your progress here"
                                 action={{
                                     label: 'Browse Courses',
-                                    onClick: () =>
-                                        (window.location.href = '/courses'),
+                                    onClick: () => navigate('/courses'),
                                 }}
                             />
                         )}
@@ -305,9 +305,7 @@ const Dashboard: React.FC = () => {
                                 description="Enroll in courses to start learning"
                                 action={{
                                     label: 'Browse Courses',
-                                    onClick: () => {
-                                        window.location.href = '/courses';
-                                    },
+                                    onClick: () => navigate('/courses'),
                                 }}
                             />
                         )}
@@ -357,9 +355,7 @@ const Dashboard: React.FC = () => {
                                 description="Start taking notes while learning"
                                 action={{
                                     label: 'View Notes',
-                                    onClick: () => {
-                                        window.location.href = '/notes';
-                                    },
+                                    onClick: () => navigate('/notes'),
                                 }}
                             />
                         )}
@@ -375,7 +371,10 @@ const Dashboard: React.FC = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <Link
                         to="/courses"
-                        className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        onClick={() =>
+                            console.log('Navigating to /courses from Dashboard')
+                        }>
                         <BookOpen className="h-5 w-5 text-indigo-600 mr-3" />
                         <span className="text-sm font-medium text-gray-900">
                             Browse Courses
@@ -384,7 +383,10 @@ const Dashboard: React.FC = () => {
 
                     <Link
                         to="/notes"
-                        className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        onClick={() =>
+                            console.log('Navigating to /notes from Dashboard')
+                        }>
                         <FileText className="h-5 w-5 text-green-600 mr-3" />
                         <span className="text-sm font-medium text-gray-900">
                             View Notes

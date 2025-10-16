@@ -54,6 +54,62 @@ export interface UserUpdate {
     profile_picture_url?: string;
 }
 
+// User creation by admin
+export interface UserCreateByAdmin {
+    email: string;
+    name: string;
+    password: string;
+    role: UserRole;
+}
+
+// User role update
+export interface UserRoleUpdate {
+    role: UserRole;
+}
+
+// User list response
+export interface UserListResponse {
+    users: User[];
+    total: number;
+    page: number;
+    page_size: number;
+}
+
+// ===== INVITATION TYPES =====
+
+// Invitation interface
+export interface Invitation {
+    id: UUID;
+    email: string;
+    role: UserRole;
+    token: string;
+    expires_at: string; // ISO date string
+    created_by: UUID;
+    used_at?: string; // ISO date string
+    created_at: string; // ISO date string
+    updated_at: string; // ISO date string
+}
+
+// Invitation creation data
+export interface InvitationCreate {
+    email: string;
+    role: UserRole;
+}
+
+// Invitation list response
+export interface InvitationListResponse {
+    invitations: Invitation[];
+    total: number;
+    page: number;
+    page_size: number;
+}
+
+// Invitation registration data
+export interface InvitationRegister {
+    name: string;
+    password: string;
+}
+
 // ===== AUTHENTICATION TYPES =====
 
 // Token response from login
@@ -67,6 +123,16 @@ export interface Token {
 export interface AuthContextType {
     user: User | null;
     login: (email: string, password: string) => Promise<boolean>;
+    register: (
+        name: string,
+        email: string,
+        password: string,
+    ) => Promise<boolean>;
+    registerWithInvitation: (
+        token: string,
+        name: string,
+        password: string,
+    ) => Promise<boolean>;
     logout: () => void;
     isAuthenticated: boolean;
     isLoading: boolean;
@@ -243,7 +309,7 @@ export interface CourseSearchResult {
 }
 
 // Search response
-export interface SearchResponse<T = any> {
+export interface SearchResponse<T = unknown> {
     hits: Array<T>;
     total: number;
     page: number;
@@ -302,7 +368,7 @@ export interface ContentProgressResponse {
     updated_at?: string;
 }
 
-// Progress analytics
+// Progress analytics (legacy - use UserProgressAnalytics instead)
 export interface ProgressAnalytics {
     total_courses_enrolled: number;
     total_content_completed: number;
@@ -311,6 +377,50 @@ export interface ProgressAnalytics {
     completion_rate: number;
     streak_days: number;
     last_activity: string | null;
+}
+
+// User progress analytics (detailed analytics from dashboard)
+export interface UserProgressAnalytics {
+    period_days: number;
+    progress_over_time: Array<{
+        date: string;
+        progress_count: number;
+        avg_progress: number;
+    }>;
+    course_performance: Array<CoursePerformance>;
+    content_engagement: Array<ContentEngagement>;
+}
+
+// Course performance data
+export interface CoursePerformance {
+    course_id: UUID;
+    course_title: string;
+    avg_progress: number;
+    progress_count: number;
+    last_activity: string | null;
+}
+
+// Content engagement data
+export interface ContentEngagement {
+    content_id: UUID;
+    title: string;
+    type: string;
+    avg_progress: number;
+    interaction_count: number;
+}
+
+// Course-specific analytics
+export interface CourseAnalytics {
+    course_id: UUID;
+    course_title: string;
+    enrolled_at: string;
+    total_progress_entries: number;
+    avg_progress: number;
+    max_progress: number;
+    content_accessed: number;
+    last_activity: string | null;
+    notes_count: number;
+    content_breakdown: Array<Record<string, unknown>>;
 }
 
 // Learning activity for streak calendar
@@ -325,7 +435,7 @@ export interface LearningActivity {
 // WebSocket message base
 export interface WebSocketMessage {
     type: string;
-    data?: any;
+    data?: unknown;
     timestamp: string;
 }
 
@@ -371,7 +481,7 @@ export interface VideoManifest {
 // ===== API RESPONSE TYPES =====
 
 // Generic API response wrapper
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
     data: T;
     message?: string;
     success: boolean;

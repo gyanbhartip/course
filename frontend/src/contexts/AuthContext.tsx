@@ -7,7 +7,12 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { login as loginAPI, getCurrentUser } from '../services/auth.service';
+import {
+    login as loginAPI,
+    register as registerAPI,
+    getCurrentUser,
+} from '../services/auth.service';
+import { registerWithInvitation } from '../services/invitation.service';
 import {
     setTokens,
     clearTokens,
@@ -28,6 +33,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [isLoading, setIsLoading] = useState(true);
     const queryClient = useQueryClient();
 
+    // Track authentication state more reliably
+    const [hasValidToken, setHasValidToken] = useState(() => checkAuth());
+
+    // Update token validity when tokens change
+    useEffect(() => {
+        const updateTokenValidity = () => {
+            setHasValidToken(checkAuth());
+        };
+
+        // Listen for storage changes (when tokens are updated/cleared)
+        window.addEventListener('storage', updateTokenValidity);
+
+        // Also check on mount
+        updateTokenValidity();
+
+        return () => {
+            window.removeEventListener('storage', updateTokenValidity);
+        };
+    }, []);
+
     // Query to get current user if authenticated
     const {
         data: currentUser,
@@ -36,7 +61,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } = useQuery({
         queryKey: ['auth', 'me'],
         queryFn: getCurrentUser,
-        enabled: checkAuth(),
+        enabled: hasValidToken,
         retry: false,
         staleTime: 5 * 60 * 1000, // 5 minutes
     });
@@ -53,19 +78,126 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsLoading(false);
     }, [currentUser, error]);
 
+    // Listen for auth logout events from API interceptor
+    useEffect(() => {
+        const handleAuthLogout = () => {
+            console.log('Auth logout event received, clearing user state');
+            setUser(null);
+            clearTokens();
+            setHasValidToken(false);
+            queryClient.clear();
+        };
+
+        window.addEventListener('auth:logout', handleAuthLogout);
+        return () => {
+            window.removeEventListener('auth:logout', handleAuthLogout);
+        };
+    }, [queryClient]);
+
     // Login mutation
     const loginMutation = useMutation({
         mutationFn: async (credentials: UserLogin): Promise<Token> => {
             return loginAPI(credentials);
         },
-        onSuccess: (tokens: Token) => {
+        onSuccess: async (tokens: Token) => {
             // Store tokens
             setTokens(tokens);
+            setHasValidToken(true);
+            // Get current user immediately after login
+            try {
+                const user = await getCurrentUser();
+                setUser(user);
+            } catch (error) {
+                console.error('Failed to get current user after login:', error);
+            }
             // Invalidate and refetch current user
             queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
         },
         onError: () => {
             // Clear any existing tokens on login failure
+            clearTokens();
+        },
+    });
+
+    // Register mutation
+    const registerMutation = useMutation({
+        mutationFn: async (userData: {
+            name: string;
+            email: string;
+            password: string;
+        }): Promise<{ user: User; password: string }> => {
+            const user = await registerAPI(userData);
+            return { user, password: userData.password };
+        },
+        onSuccess: async ({ user, password }) => {
+            // After successful registration, automatically log the user in
+            try {
+                // Login with the same credentials to get tokens
+                const tokens = await loginAPI({
+                    email: user.email,
+                    password: password,
+                });
+                // Store tokens
+                setTokens(tokens);
+                setHasValidToken(true);
+                // Set user and invalidate queries
+                setUser(user);
+                queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+            } catch (loginError) {
+                console.error(
+                    'Auto-login after registration failed:',
+                    loginError,
+                );
+                // If auto-login fails, still set the user but without tokens
+                setUser(user);
+                queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+            }
+        },
+        onError: () => {
+            // Clear any existing tokens on registration failure
+            clearTokens();
+        },
+    });
+
+    // Invitation registration mutation
+    const invitationRegisterMutation = useMutation({
+        mutationFn: async (data: {
+            token: string;
+            name: string;
+            password: string;
+        }): Promise<{ user: User; password: string }> => {
+            const user = await registerWithInvitation(data.token, {
+                name: data.name,
+                password: data.password,
+            });
+            return { user, password: data.password };
+        },
+        onSuccess: async ({ user, password }) => {
+            // After successful registration, automatically log the user in
+            try {
+                // Login with the same credentials to get tokens
+                const tokens = await loginAPI({
+                    email: user.email,
+                    password: password,
+                });
+                // Store tokens
+                setTokens(tokens);
+                setHasValidToken(true);
+                // Set user and invalidate queries
+                setUser(user);
+                queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+            } catch (loginError) {
+                console.error(
+                    'Auto-login after invitation registration failed:',
+                    loginError,
+                );
+                // If auto-login fails, still set the user but without tokens
+                setUser(user);
+                queryClient.invalidateQueries({ queryKey: ['auth', 'me'] });
+            }
+        },
+        onError: () => {
+            // Clear any existing tokens on registration failure
             clearTokens();
         },
     });
@@ -81,23 +213,65 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
     };
 
+    // Register function
+    const register = async (
+        name: string,
+        email: string,
+        password: string,
+    ): Promise<boolean> => {
+        try {
+            await registerMutation.mutateAsync({ name, email, password });
+            return true;
+        } catch (error) {
+            console.error('Registration error:', error);
+            return false;
+        }
+    };
+
+    // Invitation registration function
+    const registerWithInvitation = async (
+        token: string,
+        name: string,
+        password: string,
+    ): Promise<boolean> => {
+        try {
+            await invitationRegisterMutation.mutateAsync({
+                token,
+                name,
+                password,
+            });
+            return true;
+        } catch (error) {
+            console.error('Invitation registration error:', error);
+            return false;
+        }
+    };
+
     // Logout function
     const logout = () => {
         setUser(null);
         clearTokens();
+        setHasValidToken(false);
         // Clear all cached data
         queryClient.clear();
     };
 
     // Check if user is authenticated
-    const isAuthenticated = user !== null && checkAuth();
+    const isAuthenticated = user !== null && hasValidToken;
 
     const value: AuthContextType = {
         user,
         login,
+        register,
+        registerWithInvitation,
         logout,
         isAuthenticated,
-        isLoading: isLoading || userLoading || loginMutation.isPending,
+        isLoading:
+            isLoading ||
+            userLoading ||
+            loginMutation.isPending ||
+            registerMutation.isPending ||
+            invitationRegisterMutation.isPending,
     };
 
     return (

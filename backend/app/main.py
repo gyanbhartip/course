@@ -42,6 +42,11 @@ app.add_middleware(
 # Include API routes
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
+# Include WebSocket routes directly (without API prefix)
+from app.api.v1.endpoints import websocket
+
+app.include_router(websocket.router)
+
 
 @app.get("/health")
 async def health_check():

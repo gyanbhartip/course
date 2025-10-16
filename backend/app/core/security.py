@@ -2,14 +2,11 @@
 Security utilities for authentication and authorization.
 """
 
-from passlib.context import CryptContext
+import bcrypt
 from jose import JWTError, jwt
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 from app.core.config import settings
-
-# Password hashing context
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
@@ -21,8 +18,21 @@ def hash_password(password: str) -> str:
 
     Returns:
         str: Hashed password
+
+    Raises:
+        ValueError: If password is too long for bcrypt (72 bytes)
     """
-    return pwd_context.hash(password)
+    # Check password length in bytes (bcrypt limitation)
+    password_bytes = password.encode("utf-8")
+    if len(password_bytes) > 72:
+        raise ValueError(
+            "Password cannot be longer than 72 bytes. Please use a shorter password."
+        )
+
+    # Hash password using bcrypt directly
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password_bytes, salt)
+    return hashed_password.decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -36,7 +46,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         bool: True if password matches
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    # Verify password using bcrypt directly
+    password_bytes = plain_password.encode("utf-8")
+    hashed_bytes = hashed_password.encode("utf-8")
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
 def create_access_token(data: dict, expires_delta: timedelta = None) -> str:

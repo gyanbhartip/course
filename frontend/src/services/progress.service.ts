@@ -69,5 +69,5 @@ export const deleteProgress = async (progressId: string): Promise<void> => {
  * Get progress analytics for dashboard
  */
 export const getProgressAnalytics = async (): Promise<ProgressAnalytics> => {
-    return apiGet<ProgressAnalytics>('/progress/analytics');
+    return apiGet<ProgressAnalytics>('/dashboard/analytics/progress');
 };

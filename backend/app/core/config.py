@@ -55,8 +55,12 @@ class Settings(BaseSettings):
     ELASTICSEARCH_PASSWORD: str = ""
     ELASTICSEARCH_INDEX_PREFIX: str = "lms"
 
-    # CORS
-    CORS_ORIGINS: List[str] = ["http://localhost:5173"]
+    # CORS - Allow both frontend development server and nginx proxy
+    CORS_ORIGINS: List[str] = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost",
+    ]
 
     # Monitoring
     SENTRY_DSN: str = ""

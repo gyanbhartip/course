@@ -3,6 +3,7 @@
  * Sets up routing and authentication for the Course Management App
  */
 
+import React from 'react';
 import {
     BrowserRouter as Router,
     Routes,
@@ -13,6 +14,9 @@ import { useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import Layout from './components/Layout';
 import Login from './components/Login';
+import Register from './components/Register';
+import InviteRegister from './components/InviteRegister';
+import ProfileCompletion from './components/ProfileCompletion';
 import Dashboard from './components/Dashboard';
 import CourseList from './components/CourseList';
 import CourseViewer from './components/CourseViewer';
@@ -27,6 +31,18 @@ const ProtectedRoute: React.FC<{
 }> = ({ children, adminOnly = false }) => {
     const { isAuthenticated, user, isLoading } = useAuth();
 
+    if (import.meta.env.NODE_ENV === 'development') {
+        // Debug logging for authentication state changes
+        React.useEffect(() => {
+            console.log('ProtectedRoute - Auth state changed:', {
+                isAuthenticated,
+                isLoading,
+                userRole: user?.role,
+                adminOnly,
+            });
+        }, [isAuthenticated, isLoading, user?.role, adminOnly]);
+    }
+
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -36,10 +52,16 @@ const ProtectedRoute: React.FC<{
     }
 
     if (!isAuthenticated) {
+        console.log(
+            'ProtectedRoute - User not authenticated, redirecting to login',
+        );
         return <Navigate to="/login" replace />;
     }
 
     if (adminOnly && user?.role !== 'admin') {
+        console.log(
+            'ProtectedRoute - User not admin, redirecting to dashboard',
+        );
         return <Navigate to="/dashboard" replace />;
     }
 
@@ -68,6 +90,39 @@ const AppRoutes: React.FC = () => {
                         <Navigate to="/dashboard" replace />
                     ) : (
                         <Login />
+                    )
+                }
+            />
+
+            <Route
+                path="/register"
+                element={
+                    isAuthenticated ? (
+                        <Navigate to="/dashboard" replace />
+                    ) : (
+                        <Register />
+                    )
+                }
+            />
+
+            <Route
+                path="/register/invite/:token"
+                element={
+                    isAuthenticated ? (
+                        <Navigate to="/dashboard" replace />
+                    ) : (
+                        <InviteRegister />
+                    )
+                }
+            />
+
+            <Route
+                path="/profile/complete"
+                element={
+                    isAuthenticated ? (
+                        <ProfileCompletion />
+                    ) : (
+                        <Navigate to="/login" replace />
                     )
                 }
             />

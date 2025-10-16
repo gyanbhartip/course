@@ -114,14 +114,21 @@ apiClient.interceptors.response.use(
                     return apiClient(originalRequest);
                 } catch (refreshError) {
                     // Refresh failed, clear tokens and redirect to login
+                    console.warn(
+                        'Token refresh failed, logging out user:',
+                        refreshError,
+                    );
                     clearTokens();
-                    window.location.href = '/login';
+                    // Use a custom event to trigger navigation instead of hard redirect
+                    window.dispatchEvent(new CustomEvent('auth:logout'));
                     return Promise.reject(refreshError);
                 }
             } else {
                 // No refresh token, redirect to login
+                console.warn('No refresh token available, logging out user');
                 clearTokens();
-                window.location.href = '/login';
+                // Use a custom event to trigger navigation instead of hard redirect
+                window.dispatchEvent(new CustomEvent('auth:logout'));
             }
         }
 
