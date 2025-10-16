@@ -73,7 +73,19 @@ A modern, scalable backend API for a Course Management Learning Management Syste
     docker-compose exec api alembic upgrade head
     ```
 
-5. **Access the application**:
+5. **Create the first admin user**:
+
+    ```bash
+    docker-compose exec api python scripts/create_admin.py
+    ```
+
+    Or with custom credentials:
+
+    ```bash
+    docker-compose exec api python scripts/create_admin.py --email admin@yourdomain.com --name "Your Name" --password "your-secure-password"
+    ```
+
+6. **Access the application**:
     - API (via Nginx): http://localhost/api/
     - API (direct): http://localhost:8000
     - API Documentation: http://localhost:8000/api/docs
@@ -108,7 +120,19 @@ A modern, scalable backend API for a Course Management Learning Management Syste
     alembic upgrade head
     ```
 
-5. **Start the development server**:
+5. **Create the first admin user**:
+
+    ```bash
+    python scripts/create_admin.py
+    ```
+
+    Or with custom credentials:
+
+    ```bash
+    python scripts/create_admin.py --email admin@yourdomain.com --name "Your Name" --password "your-secure-password"
+    ```
+
+6. **Start the development server**:
     ```bash
     uvicorn app.main:app --reload
     ```
@@ -179,6 +203,14 @@ CORS_ORIGINS=["http://localhost:5173", "http://localhost:3000"]
 -   `POST /api/v1/auth/login` - Login user
 -   `POST /api/v1/auth/refresh` - Refresh access token
 -   `GET /api/v1/auth/me` - Get current user
+
+### Admin Management
+
+-   `POST /api/v1/users` - Create new user (admin only)
+-   `GET /api/v1/users/{user_id}` - Get user details (admin only)
+-   `PATCH /api/v1/users/{user_id}/role` - Update user role (admin only)
+-   `POST /api/v1/invitations` - Create invitation (admin only)
+-   `POST /api/v1/invitations/register/{token}` - Register with invitation token
 
 ### Courses
 
@@ -251,6 +283,38 @@ CORS_ORIGINS=["http://localhost:5173", "http://localhost:3000"]
 -   **Enrollment**: User course subscriptions
 -   **Note**: User-generated course notes
 -   **CourseProgress**: Learning progress tracking (Phase 2)
+
+## Admin Management
+
+### Creating the First Admin
+
+After setting up the database, you need to create the first admin user. Use the provided script:
+
+```bash
+# Using Docker Compose
+docker-compose exec api python scripts/create_admin.py
+
+# For local development
+python scripts/create_admin.py
+
+# With custom credentials
+python scripts/create_admin.py --email admin@yourdomain.com --name "Your Name" --password "your-secure-password"
+```
+
+The script will:
+
+-   Check if a user with the specified email already exists
+-   Create a new admin user with the provided credentials
+-   Hash the password securely using bcrypt
+-   Display the created user information
+
+### Creating Additional Admins
+
+Once you have at least one admin user, you can create additional admins through:
+
+1. **Admin Panel API**: Use the `POST /api/v1/users` endpoint (requires admin authentication)
+2. **Invitation System**: Create invitations with admin role using `POST /api/v1/invitations`
+3. **Admin Creation Script**: Continue using the script for additional admins
 
 ## Development
 
