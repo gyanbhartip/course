@@ -8,8 +8,8 @@ import {
     useContext,
     useState,
     useEffect,
-    ReactNode,
 } from 'react';
+import type { ReactNode } from 'react';
 
 export type Theme = 'light' | 'dark' | 'auto';
 

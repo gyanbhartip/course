@@ -4,7 +4,7 @@
  */
 
 import { apiGet } from './api';
-import type { DashboardStats, CourseProgressSummary } from '../src/types';
+import type { DashboardStats, CourseProgressSummary } from '../types';
 
 /**
  * Get user dashboard statistics

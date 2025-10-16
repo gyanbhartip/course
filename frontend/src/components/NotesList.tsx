@@ -4,26 +4,23 @@
  * Updated to use real API data with full CRUD operations
  */
 
+import {
+    BookOpen,
+    Calendar,
+    Edit,
+    FileText,
+    Filter,
+    Search,
+    Trash2,
+} from 'lucide-react';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import EmptyState from '../components/EmptyState';
+import ErrorMessage from '../components/ErrorMessage';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
-import { useNotes } from '../../hooks/useNotes';
-import { useUpdateNote, useDeleteNote } from '../../hooks/useNotes';
-import { useCourses } from '../../hooks/useCourses';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import ErrorMessage from '../../components/ErrorMessage';
-import EmptyState from '../../components/EmptyState';
-import {
-    Search,
-    Filter,
-    Plus,
-    Edit,
-    Trash2,
-    Calendar,
-    BookOpen,
-    FileText,
-    X,
-} from 'lucide-react';
+import { useCourses } from '../hooks/useCourses';
+import { useDeleteNote, useNotes, useUpdateNote } from '../hooks/useNotes';
 import type { Note } from '../types';
 
 const NotesList: React.FC = () => {

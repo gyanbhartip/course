@@ -7,15 +7,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useMyEnrollments } from '../../hooks/useEnrollments';
-import { useNotes } from '../../hooks/useNotes';
-import { useDashboardStats } from '../../hooks/useDashboard';
-import { useProgressSummary } from '../../hooks/useProgress';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import ErrorMessage from '../../components/ErrorMessage';
-import EmptyState from '../../components/EmptyState';
-import ResumeCard from '../../components/ResumeCard';
-import ProgressBar from '../../components/ProgressBar';
+import { useMyEnrollments } from '../hooks/useEnrollments';
+import { useNotes } from '../hooks/useNotes';
+import { useDashboardStats } from '../hooks/useDashboard';
+import { useProgressSummary } from '../hooks/useProgress';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
+import EmptyState from '../components/EmptyState';
+import ResumeCard from '../components/ResumeCard';
 import {
     BookOpen,
     Clock,

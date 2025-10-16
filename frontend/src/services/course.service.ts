@@ -10,7 +10,7 @@ import type {
     CourseUpdate,
     CourseListResponse,
     PaginationParams,
-} from '../src/types';
+} from '../types';
 
 /**
  * Get list of published courses with pagination and filters

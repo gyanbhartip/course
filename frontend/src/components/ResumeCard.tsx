@@ -8,7 +8,7 @@ import { Link } from 'react-router-dom';
 import { Play, RotateCcw, Clock, BookOpen } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import ProgressBar from './ProgressBar';
-import type { Course, ContentProgressResponse } from '../src/types';
+import type { Course, ContentProgressResponse } from '../types';
 
 interface ResumeCardProps {
     course: Course;

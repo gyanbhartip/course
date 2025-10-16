@@ -4,34 +4,34 @@
  * Updated to use real API with file upload functionality
  */
 
+import {
+    BookOpen,
+    Clock,
+    Edit,
+    FileText,
+    Image,
+    Plus,
+    Save,
+    Tag,
+    Trash2,
+    Upload,
+    User,
+    Video,
+    X,
+} from 'lucide-react';
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useMyCourses } from '../../hooks/useCourses';
 import {
     useCreateCourse,
-    useUpdateCourse,
     useDeleteCourse,
-} from '../../hooks/useCourses';
-import { uploadThumbnail, uploadContent } from '../../services/upload.service';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import ErrorMessage from '../../components/ErrorMessage';
-import EmptyState from '../../components/EmptyState';
-import {
-    Upload,
-    Plus,
-    Edit,
-    Trash2,
-    Save,
-    X,
-    BookOpen,
-    FileText,
-    Video,
-    Image,
-    Clock,
-    User,
-    Tag,
-} from 'lucide-react';
-import type { CourseCreate, CourseUpdate } from '../types';
+    useMyCourses,
+    useUpdateCourse,
+} from '../hooks/useCourses';
+import { uploadContent, uploadThumbnail } from '../services/upload.service';
+import type { CourseCreate } from '../types';
+import EmptyState from './EmptyState';
+import ErrorMessage from './ErrorMessage';
+import LoadingSpinner from './LoadingSpinner';
 
 interface CourseUploadData {
     title: string;

@@ -7,15 +7,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useCourses } from '../../hooks/useCourses';
-import { useEnrollmentStatus } from '../../hooks/useEnrollments';
+import { useCourses } from '../hooks/useCourses';
+import { useEnrollmentStatus } from '../hooks/useEnrollments';
 import {
     useEnrollInCourse,
     useUnenrollFromCourse,
-} from '../../hooks/useEnrollments';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import ErrorMessage from '../../components/ErrorMessage';
-import EmptyState from '../../components/EmptyState';
+} from '../hooks/useEnrollments';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
+import EmptyState from '../components/EmptyState';
 import {
     BookOpen,
     Clock,

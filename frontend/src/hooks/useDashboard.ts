@@ -11,7 +11,6 @@ import {
     getContentEngagement,
     getCourseProgress,
 } from '../services/dashboard.service';
-import type { DashboardStats, CourseProgressSummary } from '../src/types';
 
 // Query keys for consistent caching
 export const dashboardKeys = {

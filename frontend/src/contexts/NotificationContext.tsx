@@ -3,16 +3,18 @@
  * Manages real-time notifications via WebSocket
  */
 
-import React, {
+import {
     createContext,
-    useContext,
-    useState,
-    useEffect,
     useCallback,
+    useContext,
+    useEffect,
+    useState,
+    type FC,
+    type ReactNode,
 } from 'react';
 import toast from 'react-hot-toast';
 import { useWebSocket } from '../hooks/useWebSocket';
-import type { NotificationMessage } from '../src/types';
+import type { NotificationMessage } from '../types';
 
 export interface Notification {
     id: string;
@@ -41,10 +43,10 @@ const NotificationContext = createContext<NotificationContextType | undefined>(
 );
 
 interface NotificationProviderProps {
-    children: React.ReactNode;
+    children: ReactNode;
 }
 
-export const NotificationProvider: React.FC<NotificationProviderProps> = ({
+export const NotificationProvider: FC<NotificationProviderProps> = ({
     children,
 }) => {
     const [notifications, setNotifications] = useState<Array<Notification>>([]);

@@ -9,9 +9,8 @@ import type {
     ProgressCreate,
     ProgressUpdate,
     CourseProgressSummary,
-    ContentProgressResponse,
     ProgressAnalytics,
-} from '../src/types';
+} from '../types';
 
 /**
  * Create or update progress for a course content

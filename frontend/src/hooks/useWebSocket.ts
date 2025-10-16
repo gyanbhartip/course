@@ -4,15 +4,11 @@
  */
 
 import { useEffect, useRef, useCallback } from 'react';
-import { useAuth } from '../src/contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 import wsService, {
     type WebSocketConnectionState,
 } from '../services/websocket.service';
-import type {
-    WebSocketMessage,
-    NotificationMessage,
-    ProgressUpdateMessage,
-} from '../src/types';
+import type { NotificationMessage, ProgressUpdateMessage } from '../types';
 
 export interface UseWebSocketOptions {
     onNotification?: (message: NotificationMessage) => void;
@@ -24,13 +20,7 @@ export interface UseWebSocketOptions {
 
 export const useWebSocket = (options: UseWebSocketOptions = {}) => {
     const { user, isAuthenticated } = useAuth();
-    const {
-        onNotification,
-        onProgressUpdate,
-        onConnectionChange,
-        onError,
-        autoConnect = true,
-    } = options;
+    const { autoConnect = true } = options;
 
     const callbacksRef = useRef(options);
 

@@ -10,7 +10,6 @@ import {
     unenrollFromCourse,
     checkEnrollmentStatus,
 } from '../services/enrollment.service';
-import type { Enrollment, EnrollmentWithCourse } from '../src/types';
 
 // Query keys for consistent caching
 export const enrollmentKeys = {

@@ -12,13 +12,7 @@ import {
     deleteCourse,
     getMyCourses,
 } from '../services/course.service';
-import type {
-    Course,
-    CourseCreate,
-    CourseUpdate,
-    CourseListResponse,
-    PaginationParams,
-} from '../src/types';
+import type { CourseUpdate, PaginationParams } from '../types';
 
 // Query keys for consistent caching
 export const courseKeys = {

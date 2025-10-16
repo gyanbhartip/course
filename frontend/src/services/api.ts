@@ -7,9 +7,9 @@ import axios, {
     type AxiosInstance,
     type AxiosRequestConfig,
     type AxiosResponse,
-    AxiosError,
+    type AxiosError,
 } from 'axios';
-import type { Token, ApiError } from '../src/types';
+import type { Token, ApiError } from '../types';
 
 // Get API base URL from environment variables
 const API_BASE_URL =

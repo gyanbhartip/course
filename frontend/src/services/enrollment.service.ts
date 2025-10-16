@@ -4,7 +4,7 @@
  */
 
 import { apiGet, apiPost, apiDelete } from './api';
-import type { Enrollment, EnrollmentWithCourse } from '../src/types';
+import type { Enrollment, EnrollmentWithCourse } from '../types';
 
 /**
  * Enroll in a course

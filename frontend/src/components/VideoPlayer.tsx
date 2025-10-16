@@ -3,7 +3,7 @@
  * Full-featured video player with progress tracking, quality selection, and keyboard shortcuts
  */
 
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import {
     Play,
     Pause,
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useContentProgress, useCreateProgress } from '../hooks/useProgress';
 import { useWebSocket } from '../hooks/useWebSocket';
-import type { VideoManifest, VideoQuality } from '../src/types';
+import type { VideoManifest, VideoQuality } from '../types';
 
 interface VideoPlayerProps {
     contentId: string;
@@ -27,13 +27,13 @@ interface VideoPlayerProps {
     className?: string;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({
+const VideoPlayer = ({
     contentId,
     courseId,
     manifest,
     onProgressUpdate,
     className = '',
-}) => {
+}: VideoPlayerProps) => {
     const videoRef = useRef<HTMLVideoElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const progressSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);

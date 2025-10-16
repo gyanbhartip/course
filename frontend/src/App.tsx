@@ -9,16 +9,16 @@ import {
     Route,
     Navigate,
 } from 'react-router-dom';
-import { AuthProvider, useAuth } from './src/contexts/AuthContext';
-import { ThemeProvider } from './src/contexts/ThemeContext';
-import Layout from './src/components/Layout';
-import Login from './src/components/Login';
-import Dashboard from './src/components/Dashboard';
-import CourseList from './src/components/CourseList';
-import CourseViewer from './src/components/CourseViewer';
-import NotesList from './src/components/NotesList';
-import AdminPanel from './src/components/AdminPanel';
-import Analytics from './src/components/Analytics';
+import { useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
+import Layout from './components/Layout';
+import Login from './components/Login';
+import Dashboard from './components/Dashboard';
+import CourseList from './components/CourseList';
+import CourseViewer from './components/CourseViewer';
+import NotesList from './components/NotesList';
+import AdminPanel from './components/AdminPanel';
+import Analytics from './components/Analytics';
 
 // Protected Route component
 const ProtectedRoute: React.FC<{
@@ -157,11 +157,9 @@ const AppRoutes: React.FC = () => {
 function App() {
     return (
         <ThemeProvider>
-            <AuthProvider>
-                <Router>
-                    <AppRoutes />
-                </Router>
-            </AuthProvider>
+            <Router>
+                <AppRoutes />
+            </Router>
         </ThemeProvider>
     );
 }

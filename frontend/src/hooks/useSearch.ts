@@ -12,11 +12,7 @@ import {
     getPopularSearches,
     getSearchAnalytics,
 } from '../services/search.service';
-import type {
-    SearchRequest,
-    SearchResponse,
-    CourseSearchResult,
-} from '../src/types';
+import type { SearchRequest } from '../types';
 
 // Query keys for consistent caching
 export const searchKeys = {

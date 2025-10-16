@@ -13,13 +13,7 @@ import {
     deleteProgress,
     getProgressAnalytics,
 } from '../services/progress.service';
-import type {
-    Progress,
-    ProgressCreate,
-    ProgressUpdate,
-    CourseProgressSummary,
-    ProgressAnalytics,
-} from '../src/types';
+import type { ProgressUpdate } from '../types';
 
 // Query keys for consistent caching
 export const progressKeys = {

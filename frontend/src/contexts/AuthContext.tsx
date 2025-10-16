@@ -4,14 +4,15 @@
  * Updated to use real API with JWT token management
  */
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
+import type React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { login as loginAPI, getCurrentUser } from '../../services/auth.service';
+import { login as loginAPI, getCurrentUser } from '../services/auth.service';
 import {
     setTokens,
     clearTokens,
     isAuthenticated as checkAuth,
-} from '../../services/api';
+} from '../services/api';
 import type { User, AuthContextType, UserLogin, Token } from '../types';
 
 // Create the authentication context

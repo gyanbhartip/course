@@ -8,8 +8,7 @@ import type {
     SearchRequest,
     SearchResponse,
     CourseSearchResult,
-    SearchFilters,
-} from '../src/types';
+} from '../types';
 
 /**
  * Combined search (courses and content)

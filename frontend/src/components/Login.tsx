@@ -6,7 +6,7 @@
 import { Input } from '@/components/ui/input';
 import { Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '../../components/ui/button';
+import { Button } from '../components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
 
 const Login: React.FC = () => {

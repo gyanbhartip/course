@@ -4,7 +4,7 @@
  */
 
 import { apiPost, apiGet } from './api';
-import type { User, UserCreate, UserLogin, Token } from '../src/types';
+import type { User, UserCreate, UserLogin, Token } from '../types';
 
 /**
  * User registration

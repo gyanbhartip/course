@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import ThemeToggle from './ThemeToggle';
-import NotificationBell from '../../components/NotificationBell';
+import NotificationBell from '../components/NotificationBell';
 
 interface LayoutProps {
     children: React.ReactNode;

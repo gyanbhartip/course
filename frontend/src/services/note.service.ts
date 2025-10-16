@@ -4,12 +4,7 @@
  */
 
 import { apiGet, apiPost, apiPut, apiDelete } from './api';
-import type {
-    Note,
-    NoteCreate,
-    NoteUpdate,
-    PaginationParams,
-} from '../src/types';
+import type { Note, NoteCreate, NoteUpdate, PaginationParams } from '../types';
 
 /**
  * Get user's notes with optional filters

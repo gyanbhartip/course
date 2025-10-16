@@ -12,12 +12,7 @@ import {
     deleteNote,
     getCourseNotes,
 } from '../services/note.service';
-import type {
-    Note,
-    NoteCreate,
-    NoteUpdate,
-    PaginationParams,
-} from '../src/types';
+import type { NoteUpdate, PaginationParams } from '../types';
 
 // Query keys for consistent caching
 export const noteKeys = {

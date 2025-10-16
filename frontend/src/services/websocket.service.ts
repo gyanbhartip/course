@@ -28,7 +28,7 @@ import type {
     WebSocketMessage,
     NotificationMessage,
     ProgressUpdateMessage,
-} from '../src/types';
+} from '../types';
 
 export type WebSocketConnectionState =
     | 'connecting'

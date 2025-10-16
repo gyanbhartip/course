@@ -4,19 +4,18 @@
  * Updated to use real API data with enrollment checking
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useCourse } from '../../hooks/useCourse';
-import { useEnrollmentStatus } from '../../hooks/useEnrollments';
-import { useEnrollInCourse } from '../../hooks/useEnrollments';
-import { useCourseNotes, useCreateNote } from '../../hooks/useNotes';
-import { useCourseProgress } from '../../hooks/useProgress';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import ErrorMessage from '../../components/ErrorMessage';
-import EmptyState from '../../components/EmptyState';
-import VideoPlayer from '../../components/VideoPlayer';
-import ProgressBar from '../../components/ProgressBar';
+import { useCourse } from '../hooks/useCourse';
+import { useEnrollmentStatus } from '../hooks/useEnrollments';
+import { useEnrollInCourse } from '../hooks/useEnrollments';
+import { useCourseNotes, useCreateNote } from '../hooks/useNotes';
+import { useCourseProgress } from '../hooks/useProgress';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
+import VideoPlayer from '../components/VideoPlayer';
+import ProgressBar from '../components/ProgressBar';
 import {
     Play,
     Pause,

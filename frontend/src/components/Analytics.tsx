@@ -3,29 +3,17 @@
  * Shows learning analytics and progress charts
  */
 
-import React from 'react';
+import { Award, BarChart3, BookOpen, Clock, Target } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import {
-    useProgressSummary,
-    useProgressAnalytics,
-} from '../../hooks/useProgress';
-import LoadingSpinner from '../../components/LoadingSpinner';
-import ErrorMessage from '../../components/ErrorMessage';
-import EmptyState from '../../components/EmptyState';
-import Chart from '../../components/Chart';
-import StreakCalendar from '../../components/StreakCalendar';
-import ProgressBar from '../../components/ProgressBar';
-import {
-    TrendingUp,
-    Target,
-    Clock,
-    BookOpen,
-    Award,
-    Calendar,
-    BarChart3,
-} from 'lucide-react';
+import { useProgressAnalytics, useProgressSummary } from '../hooks/useProgress';
+import Chart from './Chart';
+import EmptyState from './EmptyState';
+import ErrorMessage from './ErrorMessage';
+import LoadingSpinner from './LoadingSpinner';
+import ProgressBar from './ProgressBar';
+import StreakCalendar from './StreakCalendar';
 
-const Analytics: React.FC = () => {
+const Analytics = () => {
     const { user } = useAuth();
     const {
         data: progressSummary,

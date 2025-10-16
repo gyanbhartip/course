@@ -11,7 +11,7 @@ import {
     eachDayOfInterval,
     subDays,
 } from 'date-fns';
-import type { LearningActivity } from '../src/types';
+import type { LearningActivity } from '../types';
 
 interface StreakCalendarProps {
     activities: Array<LearningActivity>;
