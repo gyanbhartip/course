@@ -3,26 +3,25 @@
  * Card component for resume functionality showing course progress
  */
 
-import type React from 'react';
-import { Link } from 'react-router-dom';
-import { Play, RotateCcw, Clock, BookOpen } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { BookOpen, Clock, Play, RotateCcw } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import type { ContentProgressResponse, Course } from '../types';
 import ProgressBar from './ProgressBar';
-import type { Course, ContentProgressResponse } from '../types';
 
-interface ResumeCardProps {
+type ResumeCardProps = {
     course: Course;
     progress: ContentProgressResponse;
     lastActivity?: string;
     className?: string;
-}
+};
 
-const ResumeCard: React.FC<ResumeCardProps> = ({
+const ResumeCard = ({
     course,
     progress,
     lastActivity,
     className = '',
-}) => {
+}: ResumeCardProps) => {
     const formatTime = (seconds: number) => {
         const hours = Math.floor(seconds / 3600);
         const minutes = Math.floor((seconds % 3600) / 60);

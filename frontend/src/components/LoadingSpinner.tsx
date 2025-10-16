@@ -3,20 +3,19 @@
  * Reusable loading indicator with customizable size and styling
  */
 
-import React from 'react';
 import { Loader2 } from 'lucide-react';
 
-interface LoadingSpinnerProps {
+type LoadingSpinnerProps = {
     size?: 'sm' | 'md' | 'lg';
     className?: string;
     text?: string;
-}
+};
 
-const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+const LoadingSpinner = ({
     size = 'md',
     className = '',
     text,
-}) => {
+}: LoadingSpinnerProps) => {
     const sizeClasses = {
         sm: 'h-4 w-4',
         md: 'h-6 w-6',

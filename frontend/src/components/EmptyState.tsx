@@ -3,7 +3,6 @@
  * Displays empty state messages with icons and optional actions
  */
 
-import React from 'react';
 import type { LucideIcon } from 'lucide-react';
 
 interface EmptyStateProps {
@@ -17,13 +16,13 @@ interface EmptyStateProps {
     className?: string;
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({
+const EmptyState = ({
     icon: Icon,
     title,
     description,
     action,
     className = '',
-}) => {
+}: EmptyStateProps) => {
     return (
         <div className={`text-center py-12 ${className}`}>
             <div className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500">

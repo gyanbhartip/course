@@ -3,23 +3,22 @@
  * Wrapper around recharts for consistent charting
  */
 
-import React from 'react';
 import {
-    LineChart,
-    Line,
-    AreaChart,
     Area,
-    BarChart,
+    AreaChart,
     Bar,
-    PieChart,
-    Pie,
+    BarChart,
+    CartesianGrid,
     Cell,
+    Legend,
+    Line,
+    LineChart,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
     XAxis,
     YAxis,
-    CartesianGrid,
-    Tooltip,
-    Legend,
-    ResponsiveContainer,
 } from 'recharts';
 
 export type ChartType = 'line' | 'area' | 'bar' | 'pie' | 'donut';
@@ -62,7 +61,7 @@ type ChartProps =
     | BarChartProps
     | PieChartProps;
 
-const Chart: React.FC<ChartProps> = props => {
+const Chart = (props: ChartProps) => {
     const { data, width = '100%', height = 300, className = '' } = props;
 
     if (!data || data.length === 0) {

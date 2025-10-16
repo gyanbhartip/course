@@ -4,27 +4,26 @@
  * Updated to use real API data
  */
 
-import type React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useMyEnrollments } from '../hooks/useEnrollments';
-import { useNotes } from '../hooks/useNotes';
-import { useDashboardStats } from '../hooks/useDashboard';
-import { useProgressSummary } from '../hooks/useProgress';
-import LoadingSpinner from '../components/LoadingSpinner';
-import ErrorMessage from '../components/ErrorMessage';
-import EmptyState from '../components/EmptyState';
-import ResumeCard from '../components/ResumeCard';
 import {
     BookOpen,
-    Clock,
-    TrendingUp,
-    Play,
-    FileText,
     Calendar,
+    Clock,
+    FileText,
+    Play,
+    TrendingUp,
 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import EmptyState from '../components/EmptyState';
+import ErrorMessage from '../components/ErrorMessage';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ResumeCard from '../components/ResumeCard';
+import { useAuth } from '../contexts/AuthContext';
+import { useDashboardStats } from '../hooks/useDashboard';
+import { useMyEnrollments } from '../hooks/useEnrollments';
+import { useNotes } from '../hooks/useNotes';
+import { useProgressSummary } from '../hooks/useProgress';
 
-const Dashboard: React.FC = () => {
+const Dashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
 

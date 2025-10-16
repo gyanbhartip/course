@@ -3,25 +3,25 @@
  * GitHub-style contribution calendar for learning activity
  */
 
-import React, { useMemo } from 'react';
 import {
+    eachDayOfInterval,
+    endOfYear,
     format,
     startOfYear,
-    endOfYear,
-    eachDayOfInterval,
     subDays,
 } from 'date-fns';
+import { useMemo } from 'react';
 import type { LearningActivity } from '../types';
 
-interface StreakCalendarProps {
+type StreakCalendarProps = {
     activities: Array<LearningActivity>;
     className?: string;
-}
+};
 
-const StreakCalendar: React.FC<StreakCalendarProps> = ({
+const StreakCalendar = ({
     activities,
     className = '',
-}) => {
+}: StreakCalendarProps) => {
     // Create activity map for quick lookup
     const activityMap = useMemo(() => {
         const map = new Map<string, LearningActivity>();

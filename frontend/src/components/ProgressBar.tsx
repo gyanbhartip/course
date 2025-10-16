@@ -3,25 +3,23 @@
  * Reusable progress bar with percentage display and color coding
  */
 
-import type React from 'react';
-
-interface ProgressBarProps {
+type ProgressBarProps = {
     progress: number; // 0-100
     size?: 'sm' | 'md' | 'lg';
     showPercentage?: boolean;
     animated?: boolean;
     className?: string;
     label?: string;
-}
+};
 
-const ProgressBar: React.FC<ProgressBarProps> = ({
+const ProgressBar = ({
     progress,
     size = 'md',
     showPercentage = true,
     animated = true,
     className = '',
     label,
-}) => {
+}: ProgressBarProps) => {
     // Clamp progress between 0 and 100
     const clampedProgress = Math.max(0, Math.min(100, progress));
 

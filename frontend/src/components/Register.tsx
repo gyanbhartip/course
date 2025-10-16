@@ -4,13 +4,13 @@
  */
 
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff, Lock, Mail, User, UserPlus, Upload } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, User, UserPlus } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
-import { Link } from 'react-router-dom';
 
-const Register: React.FC = () => {
+const Register = () => {
     const { register, isLoading } = useAuth();
     const [formData, setFormData] = useState({
         name: '',

@@ -3,39 +3,29 @@
  * Admin interface for managing users
  */
 
+import { Plus, Search, UserCheck, UserX } from 'lucide-react';
+import { useState, type FormEvent } from 'react';
 import {
-    Search,
-    Plus,
-    Edit,
-    Shield,
-    ShieldOff,
-    UserCheck,
-    UserX,
-    Filter,
-    MoreHorizontal,
-} from 'lucide-react';
-import React, { useState } from 'react';
+    useActivateUser,
+    useCreateUser,
+    useDeactivateUser,
+    useUpdateUserRole,
+    useUsers,
+} from '../hooks/useUsers';
+import type { User, UserRole } from '../types';
+import ErrorMessage from './ErrorMessage';
+import LoadingSpinner from './LoadingSpinner';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import {
-    useUsers,
-    useCreateUser,
-    useUpdateUserRole,
-    useDeactivateUser,
-    useActivateUser,
-} from '../hooks/useUsers';
-import type { User, UserCreateByAdmin, UserRole } from '../types';
-import LoadingSpinner from './LoadingSpinner';
-import ErrorMessage from './ErrorMessage';
 
-interface CreateUserFormData {
+type CreateUserFormData = {
     name: string;
     email: string;
     password: string;
     role: UserRole;
-}
+};
 
-const UserManagement: React.FC = () => {
+const UserManagement = () => {
     const [page, setPage] = useState(1);
     const [pageSize] = useState(20);
     const [search, setSearch] = useState('');
@@ -62,7 +52,7 @@ const UserManagement: React.FC = () => {
     const activateUserMutation = useActivateUser();
 
     // Handle create user
-    const handleCreateUser = async (e: React.FormEvent) => {
+    const handleCreateUser = async (e: FormEvent) => {
         e.preventDefault();
         try {
             await createUserMutation.mutateAsync(createFormData);

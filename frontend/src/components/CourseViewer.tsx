@@ -4,37 +4,34 @@
  * Updated to use real API data with enrollment checking
  */
 
-import React, { useState, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useCourse } from '../hooks/useCourse';
-import { useEnrollmentStatus } from '../hooks/useEnrollments';
-import { useEnrollInCourse } from '../hooks/useEnrollments';
-import { useCourseNotes, useCreateNote } from '../hooks/useNotes';
-import { useCourseProgress } from '../hooks/useProgress';
-import LoadingSpinner from '../components/LoadingSpinner';
-import ErrorMessage from '../components/ErrorMessage';
-import VideoPlayer from '../components/VideoPlayer';
-import ProgressBar from '../components/ProgressBar';
 import {
-    Play,
-    Pause,
-    Volume2,
-    VolumeX,
-    Maximize,
+    BookOpen,
+    CheckCircle,
     ChevronLeft,
     ChevronRight,
-    BookOpen,
-    FileText,
-    Clock,
-    CheckCircle,
     Circle,
+    Clock,
+    FileText,
+    Lock,
     Plus,
     Save,
-    Lock,
 } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import ErrorMessage from '../components/ErrorMessage';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ProgressBar from '../components/ProgressBar';
+import VideoPlayer from '../components/VideoPlayer';
+import { useAuth } from '../contexts/AuthContext';
+import { useCourse } from '../hooks/useCourse';
+import {
+    useEnrollInCourse,
+    useEnrollmentStatus,
+} from '../hooks/useEnrollments';
+import { useCourseNotes, useCreateNote } from '../hooks/useNotes';
+import { useCourseProgress } from '../hooks/useProgress';
 
-const CourseViewer: React.FC = () => {
+const CourseViewer = () => {
     const { courseId } = useParams<{ courseId: string }>();
     const { user } = useAuth();
     const [currentContentIndex, setCurrentContentIndex] = useState(0);
@@ -107,6 +104,7 @@ const CourseViewer: React.FC = () => {
                         </p>
                         <div className="mt-6 flex justify-center space-x-4">
                             <button
+                                type="button"
                                 onClick={() => enrollMutation.mutate(courseId!)}
                                 disabled={enrollMutation.isPending}
                                 className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50">
@@ -284,7 +282,9 @@ const CourseViewer: React.FC = () => {
                                         <p className="mt-1 text-sm text-gray-500">
                                             {currentContent.title}
                                         </p>
-                                        <button className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+                                        <button
+                                            type="button"
+                                            className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
                                             <FileText className="h-4 w-4 mr-2" />
                                             Open Content
                                         </button>
@@ -310,6 +310,7 @@ const CourseViewer: React.FC = () => {
                                     </p>
                                 </div>
                                 <button
+                                    type="button"
                                     onClick={() =>
                                         setShowNoteForm(!showNoteForm)
                                     }
@@ -355,6 +356,7 @@ const CourseViewer: React.FC = () => {
                                         </div>
                                         <div className="flex justify-end space-x-2">
                                             <button
+                                                type="button"
                                                 onClick={() => {
                                                     setShowNoteForm(false);
                                                     setNoteTitle('');
@@ -364,6 +366,7 @@ const CourseViewer: React.FC = () => {
                                                 Cancel
                                             </button>
                                             <button
+                                                type="button"
                                                 onClick={handleSaveNote}
                                                 disabled={
                                                     createNoteMutation.isPending
@@ -386,6 +389,7 @@ const CourseViewer: React.FC = () => {
                             {/* Navigation */}
                             <div className="mt-6 flex items-center justify-between">
                                 <button
+                                    type="button"
                                     onClick={goToPrevious}
                                     disabled={currentContentIndex === 0}
                                     className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
@@ -399,6 +403,7 @@ const CourseViewer: React.FC = () => {
                                 </span>
 
                                 <button
+                                    type="button"
                                     onClick={goToNext}
                                     disabled={
                                         currentContentIndex ===
@@ -427,6 +432,7 @@ const CourseViewer: React.FC = () => {
                                 <div className="space-y-2">
                                     {course.content.map((content, index) => (
                                         <button
+                                            type="button"
                                             key={content.id}
                                             onClick={() =>
                                                 setCurrentContentIndex(index)

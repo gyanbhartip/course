@@ -16,7 +16,7 @@ import toast from 'react-hot-toast';
 import { useWebSocket } from '../hooks/useWebSocket';
 import type { NotificationMessage } from '../types';
 
-export interface Notification {
+export type Notification = {
     id: string;
     title: string;
     message: string;
@@ -24,9 +24,9 @@ export interface Notification {
     action_url?: string;
     timestamp: string;
     read: boolean;
-}
+};
 
-interface NotificationContextType {
+type NotificationContextType = {
     notifications: Array<Notification>;
     unreadCount: number;
     markAsRead: (notificationId: string) => void;
@@ -36,7 +36,7 @@ interface NotificationContextType {
     addNotification: (
         notification: Omit<Notification, 'id' | 'timestamp' | 'read'>,
     ) => void;
-}
+};
 
 const NotificationContext = createContext<NotificationContextType | undefined>(
     undefined,

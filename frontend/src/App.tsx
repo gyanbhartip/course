@@ -5,24 +5,24 @@
 
 import React from 'react';
 import {
+    Navigate,
+    Route,
     BrowserRouter as Router,
     Routes,
-    Route,
-    Navigate,
 } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import Layout from './components/Layout';
-import Login from './components/Login';
-import Register from './components/Register';
-import InviteRegister from './components/InviteRegister';
-import ProfileCompletion from './components/ProfileCompletion';
-import Dashboard from './components/Dashboard';
-import CourseList from './components/CourseList';
-import CourseViewer from './components/CourseViewer';
-import NotesList from './components/NotesList';
 import AdminPanel from './components/AdminPanel';
 import Analytics from './components/Analytics';
+import CourseList from './components/CourseList';
+import CourseViewer from './components/CourseViewer';
+import Dashboard from './components/Dashboard';
+import InviteRegister from './components/InviteRegister';
+import Layout from './components/Layout';
+import Login from './components/Login';
+import NotesList from './components/NotesList';
+import ProfileCompletion from './components/ProfileCompletion';
+import Register from './components/Register';
+import { useAuth } from './contexts/AuthContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 // Protected Route component
 const ProtectedRoute: React.FC<{

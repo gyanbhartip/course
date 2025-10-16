@@ -4,31 +4,31 @@
  * Updated to use real API with JWT token management
  */
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import type React from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+    type PropsWithChildren,
+} from 'react';
+import {
+    isAuthenticated as checkAuth,
+    clearTokens,
+    setTokens,
+} from '../services/api';
+import {
+    getCurrentUser,
     login as loginAPI,
     register as registerAPI,
-    getCurrentUser,
 } from '../services/auth.service';
-import { registerWithInvitation } from '../services/invitation.service';
-import {
-    setTokens,
-    clearTokens,
-    isAuthenticated as checkAuth,
-} from '../services/api';
-import type { User, AuthContextType, UserLogin, Token } from '../types';
+import type { AuthContextType, Token, User, UserLogin } from '../types';
 
 // Create the authentication context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // AuthProvider component to wrap the application
-interface AuthProviderProps {
-    children: React.ReactNode;
-}
-
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider = ({ children }: PropsWithChildren) => {
     const [user, setUser] = useState<User | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const queryClient = useQueryClient();

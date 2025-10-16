@@ -3,7 +3,6 @@
  * Displays error messages with consistent styling
  */
 
-import React from 'react';
 import { AlertCircle, X } from 'lucide-react';
 
 interface ErrorMessageProps {
@@ -14,13 +13,13 @@ interface ErrorMessageProps {
     variant?: 'error' | 'warning' | 'info';
 }
 
-const ErrorMessage: React.FC<ErrorMessageProps> = ({
+const ErrorMessage = ({
     title,
     message,
     onDismiss,
     className = '',
     variant = 'error',
-}) => {
+}: ErrorMessageProps) => {
     const variantClasses = {
         error: 'bg-red-50 border-red-200 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-200',
         warning:

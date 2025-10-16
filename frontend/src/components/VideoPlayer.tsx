@@ -3,29 +3,29 @@
  * Full-featured video player with progress tracking, quality selection, and keyboard shortcuts
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
 import {
-    Play,
-    Pause,
-    Volume2,
-    VolumeX,
     Maximize,
     Minimize,
+    Pause,
+    Play,
     Settings,
     SkipBack,
     SkipForward,
+    Volume2,
+    VolumeX,
 } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useContentProgress, useCreateProgress } from '../hooks/useProgress';
 import { useWebSocket } from '../hooks/useWebSocket';
 import type { VideoManifest, VideoQuality } from '../types';
 
-interface VideoPlayerProps {
+type VideoPlayerProps = {
     contentId: string;
     courseId: string;
     manifest: VideoManifest;
     onProgressUpdate?: (progress: number, position: number) => void;
     className?: string;
-}
+};
 
 const VideoPlayer = ({
     contentId,
@@ -94,7 +94,7 @@ const VideoPlayer = ({
         }, 3000);
 
         return () => clearTimeout(timer);
-    }, [isPlaying, showControls]);
+    }, [isPlaying]);
 
     // Save progress every 5 seconds
     const saveProgress = useCallback(() => {
@@ -182,9 +182,10 @@ const VideoPlayer = ({
         videoRef.current.addEventListener(
             'loadeddata',
             () => {
-                videoRef.current!.currentTime = currentTime;
+                if (!videoRef.current) return;
+                videoRef.current.currentTime = currentTime;
                 if (wasPlaying) {
-                    videoRef.current!.play();
+                    videoRef.current.play();
                 }
             },
             { once: true },
@@ -252,14 +253,15 @@ const VideoPlayer = ({
                 case 'Digit6':
                 case 'Digit7':
                 case 'Digit8':
-                case 'Digit9':
+                case 'Digit9': {
                     event.preventDefault();
                     const percentage =
                         event.code === 'Digit0'
                             ? 0
-                            : parseInt(event.code.slice(-1)) * 10;
+                            : Number.parseInt(event.code.slice(-1)) * 10;
                     handleSeek((percentage / 100) * duration);
                     break;
+                }
             }
         };
 
@@ -358,11 +360,13 @@ const VideoPlayer = ({
                     {/* Top Controls */}
                     <div className="absolute top-4 right-4 flex space-x-2">
                         <button
+                            type="button"
                             onClick={() => setShowSettings(!showSettings)}
                             className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
                             <Settings className="h-5 w-5 text-white" />
                         </button>
                         <button
+                            type="button"
                             onClick={handleFullscreenToggle}
                             className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
                             {isFullscreen ? (
@@ -376,6 +380,7 @@ const VideoPlayer = ({
                     {/* Center Play Button */}
                     <div className="absolute inset-0 flex items-center justify-center">
                         <button
+                            type="button"
                             onClick={handlePlayPause}
                             className="p-4 bg-white/20 rounded-full hover:bg-white/30 transition-colors">
                             {isPlaying ? (
@@ -406,6 +411,7 @@ const VideoPlayer = ({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-4">
                                 <button
+                                    type="button"
                                     onClick={handlePlayPause}
                                     className="p-2 hover:bg-white/20 rounded-full transition-colors">
                                     {isPlaying ? (
@@ -416,6 +422,7 @@ const VideoPlayer = ({
                                 </button>
 
                                 <button
+                                    type="button"
                                     onClick={() =>
                                         handleSeek(
                                             Math.max(0, currentTime - 10),
@@ -426,6 +433,7 @@ const VideoPlayer = ({
                                 </button>
 
                                 <button
+                                    type="button"
                                     onClick={() =>
                                         handleSeek(
                                             Math.min(
@@ -439,6 +447,7 @@ const VideoPlayer = ({
                                 </button>
 
                                 <button
+                                    type="button"
                                     onClick={handleMuteToggle}
                                     className="p-2 hover:bg-white/20 rounded-full transition-colors">
                                     {isMuted ? (
@@ -471,6 +480,7 @@ const VideoPlayer = ({
                             <div className="flex items-center space-x-2">
                                 <div className="relative">
                                     <button
+                                        type="button"
                                         onClick={() =>
                                             setShowQualityMenu(!showQualityMenu)
                                         }
@@ -482,6 +492,7 @@ const VideoPlayer = ({
                                         <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg p-2 min-w-32">
                                             {manifest.qualities.map(quality => (
                                                 <button
+                                                    type="button"
                                                     key={quality.name}
                                                     onClick={() =>
                                                         handleQualityChange(
@@ -503,6 +514,7 @@ const VideoPlayer = ({
 
                                 <div className="relative">
                                     <button
+                                        type="button"
                                         onClick={() =>
                                             setShowSettings(!showSettings)
                                         }
@@ -514,6 +526,7 @@ const VideoPlayer = ({
                                         <div className="absolute bottom-full right-0 mb-2 bg-black/90 rounded-lg p-2 min-w-20">
                                             {playbackRates.map(rate => (
                                                 <button
+                                                    type="button"
                                                     key={rate}
                                                     onClick={() =>
                                                         handlePlaybackRateChange(

@@ -3,27 +3,27 @@
  * Provides the main layout structure with navigation and header
  */
 
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 import {
-    BookOpen,
-    User,
-    LogOut,
-    Settings,
-    Home,
-    Menu,
-    X,
     BarChart3,
+    BookOpen,
+    Home,
+    LogOut,
+    Menu,
+    Settings,
+    User,
+    X,
 } from 'lucide-react';
-import { useState } from 'react';
-import ThemeToggle from './ThemeToggle';
+import { useState, type PropsWithChildren, type ReactNode } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import NotificationBell from '../components/NotificationBell';
+import { useAuth } from '../contexts/AuthContext';
+import ThemeToggle from './ThemeToggle';
 
-interface LayoutProps {
-    children: React.ReactNode;
-}
+type LayoutProps = PropsWithChildren<{
+    children: ReactNode;
+}>;
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const Layout = ({ children }: LayoutProps) => {
     const { user, logout, isAuthenticated } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();

@@ -6,11 +6,11 @@
 import { Input } from '@/components/ui/input';
 import { Eye, EyeOff, Lock, LogIn, Mail } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
-import { Link } from 'react-router-dom';
 
-const Login: React.FC = () => {
+const Login = () => {
     const { login, isLoading } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');

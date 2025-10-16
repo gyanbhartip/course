@@ -4,31 +4,22 @@
  * Updated to use real API data
  */
 
+import { BookOpen, Clock, Filter, Play, Plus, Star, User } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import EmptyState from '../components/EmptyState';
+import ErrorMessage from '../components/ErrorMessage';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
 import { useCourses } from '../hooks/useCourses';
-import { useEnrollmentStatus } from '../hooks/useEnrollments';
 import {
     useEnrollInCourse,
+    useEnrollmentStatus,
     useUnenrollFromCourse,
 } from '../hooks/useEnrollments';
-import LoadingSpinner from '../components/LoadingSpinner';
-import ErrorMessage from '../components/ErrorMessage';
-import EmptyState from '../components/EmptyState';
-import {
-    BookOpen,
-    Clock,
-    User,
-    Play,
-    Star,
-    Filter,
-    Plus,
-    Check,
-} from 'lucide-react';
 import type { Course } from '../types';
 
-const CourseList: React.FC = () => {
+const CourseList = () => {
     const { user } = useAuth();
     const [filter, setFilter] = useState<
         'all' | 'beginner' | 'intermediate' | 'advanced'
@@ -72,6 +63,7 @@ const CourseList: React.FC = () => {
                     message="There was a problem loading the courses. Please try again."
                 />
                 <button
+                    type="button"
                     onClick={() => refetch()}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
                     Retry
@@ -190,6 +182,7 @@ const CourseList: React.FC = () => {
                             </Link>
                         ) : (
                             <button
+                                type="button"
                                 onClick={handleEnrollment}
                                 disabled={isEnrolling}
                                 className="flex-1 inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50">
@@ -265,6 +258,7 @@ const CourseList: React.FC = () => {
                             </div>
                             <div className="flex space-x-2">
                                 <button
+                                    type="button"
                                     onClick={() =>
                                         setPage(Math.max(1, page - 1))
                                     }
@@ -273,6 +267,7 @@ const CourseList: React.FC = () => {
                                     Previous
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() =>
                                         setPage(Math.min(totalPages, page + 1))
                                     }

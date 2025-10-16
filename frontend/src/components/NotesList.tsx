@@ -13,8 +13,8 @@ import {
     Search,
     Trash2,
 } from 'lucide-react';
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import EmptyState from '../components/EmptyState';
 import ErrorMessage from '../components/ErrorMessage';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -23,14 +23,14 @@ import { useCourses } from '../hooks/useCourses';
 import { useDeleteNote, useNotes, useUpdateNote } from '../hooks/useNotes';
 import type { Note } from '../types';
 
-const NotesList: React.FC = () => {
+const NotesList = () => {
     const { user } = useAuth();
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCourse, setSelectedCourse] = useState<string>('all');
     const [editingNote, setEditingNote] = useState<Note | null>(null);
     const [editTitle, setEditTitle] = useState('');
     const [editContent, setEditContent] = useState('');
-
+    const navigate = useNavigate();
     // Fetch notes and courses from API
     const {
         data: notes,
@@ -216,11 +216,13 @@ const NotesList: React.FC = () => {
                                     </div>
                                     <div className="flex justify-end space-x-2">
                                         <button
+                                            type="button"
                                             onClick={handleCancelEdit}
                                             className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
                                             Cancel
                                         </button>
                                         <button
+                                            type="button"
                                             onClick={handleSaveEdit}
                                             disabled={
                                                 updateNoteMutation.isPending
@@ -276,6 +278,7 @@ const NotesList: React.FC = () => {
                                         </div>
                                         <div className="flex items-center space-x-2 ml-4">
                                             <button
+                                                type="button"
                                                 onClick={() =>
                                                     handleEditNote(note)
                                                 }
@@ -284,6 +287,7 @@ const NotesList: React.FC = () => {
                                                 <Edit className="h-4 w-4" />
                                             </button>
                                             <button
+                                                type="button"
                                                 onClick={() =>
                                                     handleDeleteNote(note.id)
                                                 }
@@ -330,8 +334,7 @@ const NotesList: React.FC = () => {
                               }
                             : {
                                   label: 'Start Learning',
-                                  onClick: () =>
-                                      (window.location.href = '/courses'),
+                                  onClick: () => navigate('/courses'),
                               }
                     }
                 />

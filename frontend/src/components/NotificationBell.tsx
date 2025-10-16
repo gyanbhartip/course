@@ -3,13 +3,12 @@
  * Bell icon with unread count badge and dropdown menu
  */
 
-import type React from 'react';
-import { useState, useRef, useEffect } from 'react';
-import { Bell, X, Check, CheckCheck } from 'lucide-react';
-import { useNotifications } from '../../src/contexts/NotificationContext';
 import { formatDistanceToNow } from 'date-fns';
+import { Bell, Check, CheckCheck, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useNotifications } from '../../src/contexts/NotificationContext';
 
-const NotificationBell: React.FC = () => {
+const NotificationBell = () => {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const {
@@ -105,7 +104,7 @@ const NotificationBell: React.FC = () => {
                             <div className="divide-y divide-gray-200">
                                 {notifications
                                     .slice(0, 10)
-                                    .map((notification: any) => (
+                                    .map(notification => (
                                         <div
                                             key={notification.id}
                                             className={`p-4 hover:bg-gray-50 ${

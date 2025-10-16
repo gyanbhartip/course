@@ -3,14 +3,14 @@
  * Optional profile completion screen for additional user preferences
  */
 
-import { User, Camera, Save, X } from 'lucide-react';
+import { Save, User, X } from 'lucide-react';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
-const ProfileCompletion: React.FC = () => {
+const ProfileCompletion = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
     const [profileData, setProfileData] = useState({

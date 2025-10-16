@@ -4,16 +4,15 @@
  */
 
 import { Input } from '@/components/ui/input';
-import { Eye, EyeOff, Lock, User, UserPlus, Mail } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Eye, EyeOff, Lock, Mail, User, UserPlus } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { useAuth } from '../contexts/AuthContext';
-import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useInvitationByToken } from '../hooks/useInvitations';
 import LoadingSpinner from './LoadingSpinner';
-import ErrorMessage from './ErrorMessage';
 
-const InviteRegister: React.FC = () => {
+const InviteRegister = () => {
     const { token } = useParams<{ token: string }>();
     const navigate = useNavigate();
     const { isAuthenticated, registerWithInvitation, isLoading } = useAuth();
@@ -65,7 +64,7 @@ const InviteRegister: React.FC = () => {
     };
 
     // Handle form submission
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setError('');
 

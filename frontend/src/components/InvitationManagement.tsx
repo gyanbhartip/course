@@ -4,33 +4,33 @@
  */
 
 import {
-    Search,
-    Plus,
-    Mail,
-    Trash2,
-    Copy,
     Check,
     Clock,
+    Copy,
+    Mail,
+    Plus,
+    Search,
+    Trash2,
     UserCheck,
 } from 'lucide-react';
-import React, { useState } from 'react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
+import { useState, type FormEvent } from 'react';
 import {
-    useInvitations,
     useCreateInvitation,
+    useInvitations,
     useRevokeInvitation,
 } from '../hooks/useInvitations';
-import type { Invitation, InvitationCreate, UserRole } from '../types';
-import LoadingSpinner from './LoadingSpinner';
+import type { Invitation, UserRole } from '../types';
 import ErrorMessage from './ErrorMessage';
+import LoadingSpinner from './LoadingSpinner';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
 
 interface CreateInvitationFormData {
     email: string;
     role: UserRole;
 }
 
-const InvitationManagement: React.FC = () => {
+const InvitationManagement = () => {
     const [page, setPage] = useState(1);
     const [pageSize] = useState(20);
     const [search, setSearch] = useState('');
@@ -54,7 +54,7 @@ const InvitationManagement: React.FC = () => {
     const revokeInvitationMutation = useRevokeInvitation();
 
     // Handle create invitation
-    const handleCreateInvitation = async (e: React.FormEvent) => {
+    const handleCreateInvitation = async (e: FormEvent) => {
         e.preventDefault();
         try {
             await createInvitationMutation.mutateAsync(createFormData);
@@ -100,19 +100,19 @@ const InvitationManagement: React.FC = () => {
                 color: 'bg-gray-100 text-gray-800',
                 icon: UserCheck,
             };
-        } else if (now > expiresAt) {
+        }
+        if (now > expiresAt) {
             return {
                 status: 'expired',
                 color: 'bg-red-100 text-red-800',
                 icon: Clock,
             };
-        } else {
-            return {
-                status: 'pending',
-                color: 'bg-yellow-100 text-yellow-800',
-                icon: Mail,
-            };
         }
+        return {
+            status: 'pending',
+            color: 'bg-yellow-100 text-yellow-800',
+            icon: Mail,
+        };
     };
 
     if (invitationsLoading) {
@@ -301,6 +301,7 @@ const InvitationManagement: React.FC = () => {
                                                     ...
                                                 </code>
                                                 <button
+                                                    type="button"
                                                     onClick={() =>
                                                         handleCopyToken(
                                                             invitation.token,
